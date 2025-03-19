@@ -50,6 +50,7 @@ export interface ConfigState {
   activeTabIndex: number;
   recordTrainingData: boolean;
   backgroundImageUrl: string;
+  vrcNativeNeutralValue: number;
 }
 
 /**
@@ -96,6 +97,7 @@ export const initialState: ConfigState = {
   activeTabIndex: 0,
   recordTrainingData: false,
   backgroundImageUrl: '',
+  vrcNativeNeutralValue: .25,
 };
 
 /**
@@ -262,6 +264,9 @@ const configSlice = createSlice({
     setBackgroundImageUrl(state, action: PayloadAction<string>) {
       state.backgroundImageUrl = action.payload;
     },
+    setvrcNativeNeutralValue(state, action: PayloadAction<number>) {
+      state.vrcNativeNeutralValue = action.payload;
+    },
   },
 });
 
@@ -306,6 +311,7 @@ export const {
   setActiveTabIndex,
   setRecordTrainingData,
   setBackgroundImageUrl,
+  setvrcNativeNeutralValue,
 } = configSlice.actions;
 
 export default configSlice.reducer;

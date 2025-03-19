@@ -114,6 +114,7 @@ export function startTrackingTransmission() {
     oscPrefix,
     splitOutputY,
     blinkReleaseDelayMs,
+    vrcNativeNeutralValue,
   } = state.config;
 
   // 1. Determine the current transmission mode and OSC endpoint.
@@ -203,7 +204,7 @@ export function startTrackingTransmission() {
         Math.abs(previousNativeOpenness - newCombinedOpenness) > 0.001
       ) {
         previousNativeOpenness = newCombinedOpenness;
-        OscSenderUtils.sendNativeEyeOpenness(newCombinedOpenness);
+        OscSenderUtils.sendNativeEyeOpenness(newCombinedOpenness, vrcNativeNeutralValue);
       }
     }
 

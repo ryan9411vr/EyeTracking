@@ -190,6 +190,8 @@
         "verticalExaggerationDescription": "(Scale vertical movement)",
         "horizontalExaggerationLabel": "Horizontal Exaggeration: {{value}}",
         "horizontalExaggerationDescription": "(Scale horizontal movement)",
+        "nativeNeutralValueLabel": "VRC Native Neutral EyesClosedAmount: {{value}}",
+        "nativeNeutralValueTooltip": "For EyesClosedAmount 0=Wide Open, <This Value>=Normal, 1=Closed Eyes",
         "pitchOffsetLabel": "Pitch Offset Degrees: {{value}}°",
         "pitchOffsetDescription": "(Adjust pitch offset)"
     },

@@ -1,0 +1,41 @@
+# Unity Folders
+# https://git-scm.com/docs/gitignore
+# A leading slash matches the beginning of the pathname.
+
+# Would like to keep /Logs/ untracked to remove, but since 2020 Unity will keep /Logs/ contents opened and unable to remove
+/Logs/
+/Temp/
+/Library/
+# Added in Unity 2020, shall be ignored according to Aras
+# https://forum.unity.com/threads/whats-the-usersettings-directory.754436/#post-5029937
+/UserSettings/
+New Unity 6 Android build temp folder?
+/.utmp/
+
+# Unity Generated Solution files
+/*.sln
+/*.csproj
+
+# Visual Studio DB
+/.vs/
+
+# ReSharper Personal Config
+/*.DotSettings.user
+
+# Visual Studio Code
+/.vscode/
+/obj/
+
+# Rider
+.idea/
+/Assets/Plugins/Editor/JetBrains/
+/Assets/Plugins/Editor/JetBrains.meta
+
+# MonoDevelop
+/*.userprefs
+
+# Windows File Explorer Thumbnail Cache
+Thumbs.db
+# Mac Finder Cache
+.DS_Store
+# These should be ignored by default global gitignore, but from time to time we got these from packages or other sources

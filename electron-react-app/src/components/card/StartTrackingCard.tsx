@@ -12,6 +12,7 @@ import ActiveEyeTrackingMolecule from '../molecules/checkboxes/EyeTrackingCheckb
 import ActiveOpennessTrackingMolecule from '../molecules/checkboxes/EyelidTrackingCheckboxMolecule';
 import OscInputMolecule from '../molecules/text/OscInputTextMolecule';
 import VrcftPrefixMolecule from '../molecules/text/VrcftPrefixTextMolecule';
+import VrcNativeNeutralValueMolecule from '../molecules/sliders/VrcNativeNeutralValueMolecule';
 
 const StartTrackingCard: React.FC = () => {
   const { t } = useTranslation();
@@ -24,6 +25,9 @@ const StartTrackingCard: React.FC = () => {
       <div className="text-normal text-standard-color">
         <OscInputMolecule />
         <VrcftPrefixMolecule />
+        <div className="mb-1">
+          <VrcNativeNeutralValueMolecule />
+        </div>
 
         {/* Grid for toggles */}
         <div className="start-tracking-grid">

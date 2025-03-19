@@ -123,13 +123,35 @@ export class OscSenderUtils {
   }
 
   /**
-   * Sends the combined eye openness value for native eye tracking.
-   *
-   * @param openness - The openness value.
+   * Sends eye closed amount for native eye tracking.
+   * 
+   * @param openness - The unscaled openness value computed from this client
+   * 0=shut 0.75=normal 1=wide.
+   * @param neutralValue The value of (1-openness) which should be treated as normally open.
    */
-  static sendNativeEyeOpenness(openness: number) {
-    window.electronAPI.sendOscEyesClosedAmount(openness);
+  static sendNativeEyeOpenness(openness: number, neutralValue: number) {
+    // Invert openness: 0 becomes 1, 1 becomes 0.
+    const invertedOpenness = 1 - openness;
+    let eyesClosedValue: number;
+  
+    // Interpolate based on the inverted openness.
+    if (invertedOpenness <= 0.25) {
+      // For values between 0 and 0.25, interpolate from 0 to neutralValue.
+      eyesClosedValue = neutralValue * (invertedOpenness / 0.25);
+    } else {
+      // For values between 0.25 and 1, interpolate from neutralValue to 1.
+      eyesClosedValue =
+        neutralValue +
+        (1 - neutralValue) * ((invertedOpenness - 0.25) / 0.75);
+    }
+  
+    // Use the static clamp method to ensure eyesClosedValue is within [0, 1]
+    eyesClosedValue = OscSenderUtils.clamp(eyesClosedValue, 0, 1);
+  
+    window.electronAPI.sendOscEyesClosedAmount(eyesClosedValue);
   }
+  
+
 
   /* ====================== VRCFaceTracking V1 ====================== */
 
@@ -185,13 +207,11 @@ export class OscSenderUtils {
     horizontalExaggeration: number
   ) {
     const normLeftTheta1 = NormalizationUtils.normalizeTheta1(data.leftTheta1);
-    const normRightTheta1 = NormalizationUtils.normalizeTheta1(data.rightTheta1);
     const normLeftTheta2 = NormalizationUtils.normalizeTheta2(data.leftTheta2);
     const normRightTheta2 = NormalizationUtils.normalizeTheta2(data.rightTheta2);
 
     const offsetFraction = OscSenderUtils.calculateOffsetFraction(pitchOffset);
     const leftOffset = OscSenderUtils.scaleOffsetAndClamp(normLeftTheta1, offsetFraction, verticalExaggeration);
-    const rightOffset = OscSenderUtils.scaleOffsetAndClamp(normRightTheta1, offsetFraction, verticalExaggeration);
     const scaledLeftTheta2 = OscSenderUtils.scaleAndClamp(normLeftTheta2, horizontalExaggeration);
     const scaledRightTheta2 = OscSenderUtils.scaleAndClamp(normRightTheta2, horizontalExaggeration);
 

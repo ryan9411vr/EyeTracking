@@ -16,11 +16,6 @@ import statusReducer from './slices/statusSlice';
 import configReducer, { initialState as configInitialState } from './slices/configSlice';
 import databaseReducer, { initialState as databaseInitialState } from './slices/databaseSlice';
 
-// 1) Define the migrations. 
-//    In this example, we have a single migration at version 1 that merges
-//    any persisted state with the slice's default initial state, ensuring
-//    newly added fields get proper defaults if they're missing.
-
 const migrations = {
   1: (state: any) => {
     return {
