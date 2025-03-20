@@ -46,9 +46,11 @@
     "react-redux": "^9.2.0",
     "redux-persist": "^6.0.0",
     "remark-breaks": "^4.0.0",
+    "serialport": "^13.0.0",
     "sqlite3": "^5.1.7"
   },
   "build": {
+    "npmRebuild": false,
     "asar": true,
     "asarUnpack": [
       "node_modules/electron-serve/**"

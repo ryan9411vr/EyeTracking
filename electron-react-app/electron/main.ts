@@ -21,6 +21,7 @@ import path from 'path';
 import fs from 'fs';
 import sqlite3 from 'sqlite3';
 import * as osc from 'osc';
+import { createMJPEGCOMConnection, CameraConnection } from './serial/comCameraService';
 
 // Global variables
 let mainWindow: BrowserWindow | null = null;
@@ -64,9 +65,6 @@ app.whenReady().then(() => {
   app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 
   // Remove application menu in production mode
-  if (!isDev) {
-    Menu.setApplicationMenu(null);
-  }
 
   createWindow();
 
@@ -436,6 +434,34 @@ app.whenReady().then(() => {
     };
     oscClient.send(msg);
   });
+
+  const comConnections: { [side: string]: CameraConnection } = {};
+
+  ipcMain.on(
+    'start-com-connection',
+    (
+      event,
+      options: { side: 'leftEye' | 'rightEye'; port: string; baudRate?: number }
+    ) => {
+      // If a connection for this side already exists, close it.
+      if (comConnections[options.side]) {
+        comConnections[options.side].close();
+      }
+      // Create and store the new connection.
+      comConnections[options.side] = createMJPEGCOMConnection(options);
+      console.log(`Main: Started COM connection for ${options.side} on port ${options.port}`);
+    }
+  );
+  
+  ipcMain.on('stop-com-connection', (event, payload: { side: 'leftEye' | 'rightEye' }) => {
+    const connection = comConnections[payload.side];
+    if (connection) {
+      connection.close();
+      delete comConnections[payload.side];
+      console.log(`Main: Stopped COM connection for ${payload.side}`);
+    }
+  });
+
 });
 
 /**

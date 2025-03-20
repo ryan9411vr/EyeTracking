@@ -71,6 +71,15 @@ export interface MJPEGConnectionOptions {
   onError?: (error: any) => void; // Callback for handling fatal errors
 }
 
+/**
+ * Options for establishing a COM-based MJPEG connection.
+ */
+export interface MJPEGCOMConnectionOptions {
+  side: 'leftEye' | 'rightEye';
+  port: string; // The COM port string (e.g., "COM3")
+  onError?: (error: any) => void;
+}
+
 // Create worker instances for processing image data for each eye.
 // Adjust the file paths based on your project structure.
 const imageProcessorWorkerLeft = new Worker(new URL('../workers/imageProcessor.worker.js', import.meta.url));
@@ -90,7 +99,7 @@ const imageProcessorWorkerRight = new Worker(new URL('../workers/imageProcessor.
  * @param options - Connection options including the stream URL, camera side, and an optional error callback.
  * @returns An object with a `close` method to terminate the connection.
  */
-export function createMJPEGConnection({
+export function createMJPEGWIFIConnection({
   side,
   streamUrl,
   onError
@@ -322,4 +331,61 @@ export function createMJPEGConnection({
   })();
 
   return { close };
+}
+
+// Listen for camera frame updates via the preload-exposed API.
+window.comCameraAPI.onFrameUpdate(
+  (
+    _event: Electron.IpcRendererEvent,
+    payload: {
+      side: 'leftEye' | 'rightEye';
+      frame: string;
+      timestamp: number;
+      status: 'online' | 'offline';
+    }
+  ) => {
+    store.dispatch(
+      setCameraFrame({
+        side: payload.side,
+        frame: payload.frame,
+        timestamp: payload.timestamp,
+        status: payload.status,
+      })
+    );
+  }
+);
+
+/**
+ * Options for establishing a COM-based MJPEG connection.
+ */
+export interface MJPEGCOMConnectionOptions {
+  side: 'leftEye' | 'rightEye';
+  port: string; // COM port string, e.g., "COM3"
+  onError?: (error: any) => void;
+}
+
+/**
+ * Creates a COM-based MJPEG connection via IPC.
+ *
+ * This function sends an IPC message to the Electron main process to start the COM connection.
+ * It returns an object with a `close` method that, when invoked, instructs the main process to stop
+ * the COM connection.
+ *
+ * @param options - Connection options including the COM port, camera side
+ * @returns An object with a `close` method to terminate the COM connection.
+ */
+export function createMJPEGCOMConnection(
+  options: MJPEGCOMConnectionOptions
+): CameraConnection {
+  // Destructure and omit the onError property.
+  const { side, port } = options;
+  
+  // Send only cloneable properties via IPC.
+  window.comCameraAPI.startConnection({ side, port });
+
+  return {
+    close: () => {
+      window.comCameraAPI.stopConnection(side);
+    },
+  };
 }

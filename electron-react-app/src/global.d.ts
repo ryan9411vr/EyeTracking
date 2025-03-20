@@ -1,3 +1,5 @@
+/// <reference types="electron" />
+
 // src/global.d.ts
 
 /**
@@ -164,10 +166,30 @@ export interface ElectronAPI {
   focusFix: () => void;
 }
 
-// Extend the global Window interface to include electronAPI.
+export interface ComCameraAPI {
+  /**
+   * Starts a COM connection.
+   * @param options - An object containing side, port, and optionally baudRate.
+   */
+  startConnection: (options: { side: 'leftEye' | 'rightEye'; port: string; baudRate?: number }) => void;
+
+  /**
+   * Stops a COM connection for the specified side.
+   * @param side - 'leftEye' or 'rightEye'
+   */
+  stopConnection: (side: 'leftEye' | 'rightEye') => void;
+
+  /**
+   * Registers a callback for frame updates coming from the main process.
+   * @param callback - Function to call with (event, payload)
+   */
+  onFrameUpdate: (callback: (event: Electron.IpcRendererEvent, payload: any) => void) => void;
+}
+
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
+    comCameraAPI: ComCameraAPI;
   }
 }
 

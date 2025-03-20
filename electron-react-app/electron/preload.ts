@@ -71,3 +71,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getLocale: (): string => ipcRenderer.sendSync('get-locale'),
   focusFix: () => ipcRenderer.send('focus-fix'),
 });
+
+contextBridge.exposeInMainWorld('comCameraAPI', {
+  startConnection: (options: { side: 'leftEye' | 'rightEye'; port: string; baudRate?: number }) => {
+    ipcRenderer.send('start-com-connection', options);
+  },
+  stopConnection: (side: 'leftEye' | 'rightEye') => {
+    ipcRenderer.send('stop-com-connection', { side });
+  },
+  onFrameUpdate: (callback: (event: Electron.IpcRendererEvent, payload: any) => void) => {
+    ipcRenderer.on('camera-frame-update', callback);
+  },
+});
