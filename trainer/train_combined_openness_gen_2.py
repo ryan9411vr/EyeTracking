@@ -57,8 +57,12 @@ def preprocess_eye(data_url: str, size=(IMAGE_SIZE, IMAGE_SIZE)) -> np.ndarray:
     Returns:
         np.ndarray: The processed image as a NumPy array.
     """
-    img = data_url_to_image(data_url).convert("RGB").resize(size)
-    return np.array(img) / 255.0
+    try:
+        img = data_url_to_image(data_url).convert("RGB").resize(size)
+        img.load()  # Force load to trigger potential errors
+        return np.array(img) / 255.0
+    except Exception as e:
+        raise ValueError(f"Error in preprocess_eye: {e}")
 
 
 def random_offset_image(image: np.ndarray, max_offset: int = MAX_OFFSET) -> np.ndarray:
@@ -135,11 +139,15 @@ def load_data_from_db(db_path: str) -> tuple:
     labels = []
     target_size = (IMAGE_SIZE, IMAGE_SIZE)
     for left_frame, right_frame, openness in rows:
-        left_img = preprocess_eye(left_frame, size=target_size)
-        right_img = preprocess_eye(right_frame, size=target_size)
-        # Apply random offset augmentation to both images.
-        left_img = random_offset_image(left_img, max_offset=MAX_OFFSET)
-        right_img = random_offset_image(right_img, max_offset=MAX_OFFSET)
+        try:
+            left_img = preprocess_eye(left_frame, size=target_size)
+            right_img = preprocess_eye(right_frame, size=target_size)
+            # Apply random offset augmentation to both images.
+            left_img = random_offset_image(left_img, max_offset=MAX_OFFSET)
+            right_img = random_offset_image(right_img, max_offset=MAX_OFFSET)
+        except Exception as e:
+            print("Skipping image due to error.")
+            continue
         # Concatenate images horizontally.
         combined_img = np.concatenate([left_img, right_img], axis=1)
         combined_images.append(combined_img)

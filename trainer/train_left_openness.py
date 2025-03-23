@@ -23,8 +23,13 @@ def data_url_to_image(data_url: str):
 
 def preprocess_eye(data_url: str, size=(128, 128)):
     """Decode a data URL into an image array."""
-    img = data_url_to_image(data_url).convert("RGB").resize(size)
-    return np.array(img) / 255.0
+    # Wrap the image conversion in a try/except block to catch errors
+    try:
+        img = data_url_to_image(data_url).convert("RGB").resize(size)
+        img.load()  # Force load to trigger potential errors
+        return np.array(img) / 255.0
+    except Exception as e:
+        raise ValueError(f"Error in preprocess_eye: {e}")
 
 def random_offset_image(image, max_offset=MAX_OFFSET):
     """
@@ -77,8 +82,12 @@ def load_data_from_db(db_path: str):
     images = []
     labels = []
     for left_frame, openness in rows:
-        left_img = preprocess_eye(left_frame, size=(128, 128))
-        left_img = random_offset_image(left_img, max_offset=MAX_OFFSET)
+        try:
+            left_img = preprocess_eye(left_frame, size=(128, 128))
+            left_img = random_offset_image(left_img, max_offset=MAX_OFFSET)
+        except Exception as e:
+            print("Skipping image due to error.")
+            continue
         images.append(left_img)
         labels.append([openness])
     

@@ -16,17 +16,20 @@ IMAGE_SIZE = (128, 128)      # Size to resize each eye image.
 MAX_OFFSET = 10              # Maximum pixel offset for on-the-fly augmentation.
 DEFAULT_LIMIT = 250000        # Default limit on the number of rows to query from the database.
 
-# ----- All your existing functions (data_url_to_image, preprocess_eye, etc.) go here -----
-
 def data_url_to_image(data_url: str):
     header, encoded = data_url.split(',', 1)
     data = base64.b64decode(encoded)
     return Image.open(BytesIO(data))
 
-def preprocess_eye(data_url: str, size=IMAGE_SIZE):
+def preprocess_eye(data_url: str, size=(128, 128)):
     """Decode a data URL into an image array."""
-    img = data_url_to_image(data_url).convert("RGB").resize(size)
-    return np.array(img) / 255.0
+    # Wrap the image conversion in a try/except block to catch errors
+    try:
+        img = data_url_to_image(data_url).convert("RGB").resize(size)
+        img.load()  # Force load to trigger potential errors
+        return np.array(img) / 255.0
+    except Exception as e:
+        raise ValueError(f"Error in preprocess_eye: {e}")
 
 def random_offset_image(image, max_offset=MAX_OFFSET):
     """
@@ -92,11 +95,16 @@ def data_generator_gen2(db_path: str, gen2rows, gen2labels, batch_size: int = BA
         batch_images = []
         for rid in current_batch:
             left_frame, right_frame = rowid_to_frames[rid]
-            left_img = preprocess_eye(left_frame, size=IMAGE_SIZE)
-            right_img = preprocess_eye(right_frame, size=IMAGE_SIZE)
-            if augmentation:
-                left_img = random_offset_image(left_img, max_offset=max_offset)
-                right_img = random_offset_image(right_img, max_offset=max_offset)
+            try:
+                left_img = preprocess_eye(left_frame, size=IMAGE_SIZE)
+                right_img = preprocess_eye(right_frame, size=IMAGE_SIZE)
+                if augmentation:
+                    left_img = random_offset_image(left_img, max_offset=max_offset)
+                    right_img = random_offset_image(right_img, max_offset=max_offset)
+            except Exception as e:
+                print("Skipping image due to error.")
+                batch_size -= 1
+                continue
             combined_img = np.concatenate([left_img, right_img], axis=1)
             batch_images.append(combined_img)
         yield np.array(batch_images), np.array(batch_target_labels)

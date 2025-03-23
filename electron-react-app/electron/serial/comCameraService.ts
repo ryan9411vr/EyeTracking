@@ -29,7 +29,7 @@ export interface CameraConnection {
  * with the data URL for the image. It will automatically attempt to reconnect if the connection
  * is lost, and it supports being closed.
  *
- * @param options - Connection options including the COM port, side identifier, and  baud rate.
+ * @param options - Connection options including the COM port, side identifier, and baud rate.
  * @returns An object with a `close` method to terminate the connection.
  */
 export function createMJPEGCOMConnection(options: COMConnectionOptions): CameraConnection {
@@ -43,7 +43,7 @@ export function createMJPEGCOMConnection(options: COMConnectionOptions): CameraC
   let buffer = Buffer.alloc(0);
 
   // Constants matching the headers in SerialManager.cpp:
-  const HEADER = Buffer.from([0xFF, 0xA0]);         // ETVR_HEADER
+  const HEADER = Buffer.from([0xFF, 0xA0]);       // ETVR_HEADER
   const HEADER_FRAME = Buffer.from([0xFF, 0xA1]);   // ETVR_HEADER_FRAME
   // Total header length: 2 (HEADER) + 2 (HEADER_FRAME) + 2 (frame length bytes)
   const HEADER_TOTAL_LENGTH = 6;
@@ -138,13 +138,18 @@ export function createMJPEGCOMConnection(options: COMConnectionOptions): CameraC
     while (buffer.length >= HEADER_TOTAL_LENGTH) {
       const headerIndex = buffer.indexOf(HEADER);
       if (headerIndex === -1) {
-        // If header not found, discard data.
-        buffer = Buffer.alloc(0);
-        return;
+        // No complete header found.
+        // If the last byte might be the start of a header, keep it.
+        if (buffer.length > 0 && buffer[buffer.length - 1] === HEADER[0]) {
+          buffer = buffer.slice(buffer.length - 1);
+        } else {
+          buffer = Buffer.alloc(0);
+        }
+        break; // Wait for more data.
       }
       // Ensure we have enough data after the header.
       if (buffer.length < headerIndex + HEADER_TOTAL_LENGTH) {
-        return; // wait for more data
+        break; // Wait for more data.
       }
       // Validate that the next two bytes match HEADER_FRAME.
       const possibleHeaderFrame = buffer.slice(headerIndex + 2, headerIndex + 4);
@@ -158,15 +163,19 @@ export function createMJPEGCOMConnection(options: COMConnectionOptions): CameraC
       const frameLength = lengthBytes.readUInt16LE(0);
       // Check if the entire frame is available.
       if (buffer.length < headerIndex + HEADER_TOTAL_LENGTH + frameLength) {
-        return; // wait for the rest of the frame
+        break; // Wait for the rest of the frame.
       }
       // Extract the JPEG frame.
       const frameData = buffer.slice(headerIndex + HEADER_TOTAL_LENGTH, headerIndex + HEADER_TOTAL_LENGTH + frameLength);
       // Remove processed bytes from the buffer.
       buffer = buffer.slice(headerIndex + HEADER_TOTAL_LENGTH + frameLength);
-      // Convert the JPEG data to a data URL.
-      const dataUrl = `data:image/jpeg;base64,${frameData.toString('base64')}`;
-      notifyFrameUpdate(dataUrl, 'online');
+      // Validate that the frame is a valid JPEG before sending update.
+      if (isValidJPEG(frameData)) {
+        const dataUrl = `data:image/jpeg;base64,${frameData.toString('base64')}`;
+        notifyFrameUpdate(dataUrl, 'online');
+      } else {
+        console.error("Invalid JPEG frame detected. Skipping frame update.");
+      }
     }
   }
 
@@ -185,4 +194,17 @@ export function createMJPEGCOMConnection(options: COMConnectionOptions): CameraC
       }
     },
   };
+}
+
+// Helper function to check if a buffer contains a valid JPEG frame.
+// Doesn't check everything but is a small little sanity check.
+function isValidJPEG(frameData: Buffer): boolean {
+  // A valid JPEG should be at least 4 bytes, start with 0xFFD8, and end with 0xFFD9.
+  if (frameData.length < 4) return false;
+  return (
+    frameData[0] === 0xFF &&
+    frameData[1] === 0xD8 &&
+    frameData[frameData.length - 2] === 0xFF &&
+    frameData[frameData.length - 1] === 0xD9
+  );
 }

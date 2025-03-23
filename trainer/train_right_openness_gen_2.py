@@ -57,8 +57,12 @@ def preprocess_eye(data_url: str, size=(IMAGE_SIZE, IMAGE_SIZE)) -> np.ndarray:
     Returns:
         np.ndarray: The processed image as a NumPy array.
     """
-    img = data_url_to_image(data_url).convert("RGB").resize(size)
-    return np.array(img) / 255.0
+    try:
+        img = data_url_to_image(data_url).convert("RGB").resize(size)
+        img.load()  # Force load to trigger potential errors
+        return np.array(img) / 255.0
+    except Exception as e:
+        raise ValueError(f"Error in preprocess_eye: {e}")
 
 
 def random_offset_image(image: np.ndarray, max_offset: int = MAX_OFFSET) -> np.ndarray:
@@ -121,8 +125,12 @@ def load_data_from_db(db_path: str):
     images = []
     labels = []
     for right_frame, openness in rows:
-        right_img = preprocess_eye(right_frame, size=(128, 128))
-        right_img = random_offset_image(right_img, max_offset=MAX_OFFSET)
+        try:
+            right_img = preprocess_eye(right_frame, size=(128, 128))
+            right_img = random_offset_image(right_img, max_offset=MAX_OFFSET)
+        except Exception as e:
+            print("Skipping image due to error.")
+            continue
         images.append(right_img)
         labels.append([openness])
     
