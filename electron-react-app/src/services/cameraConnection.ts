@@ -531,8 +531,8 @@ export function createUVCConnection({
         throw new Error('Canvas 2D context not available.');
       }
 
-      canvas.width = videoElement.videoWidth;
-      canvas.height = videoElement.videoHeight;
+      canvas.width = 240;
+      canvas.height = 240;
 
       // Set a filter for fixing the messed up contrast. Seems to be needed for the OpenIris cameras.
       ctx.filter = 'contrast(1.5)';
@@ -569,7 +569,7 @@ export function createUVCConnection({
         }
 
         // Pack and dispatch frame.
-        ctx?.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        ctx?.drawImage(videoElement, 0, 0, 240, 240);
         const dataUrl = canvas.toDataURL('image/jpeg');
         store.dispatch(
           setCameraFrame({
