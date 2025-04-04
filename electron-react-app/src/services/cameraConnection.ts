@@ -498,23 +498,6 @@ export function createUVCConnection({
 
       // Connect to the UVC device and setup the handler when the camera gets unplugged.
       videoStream = await navigator.mediaDevices.getUserMedia(constraints);
-      const videoTrack = videoStream.getVideoTracks()[0];
-      //console.log(videoTrack.getCapabilities());
-      //console.log(videoTrack.getConstraints());
-      //console.log(videoTrack.getSettings());
-      videoTrack.addEventListener('ended', () => {
-        console.error(`Camera on side ${side} has been disconnected.`);
-        store.dispatch(
-          setCameraFrame({
-            side,
-            frame: '',
-            timestamp: Date.now(),
-            status: 'offline',
-          })
-        );
-        onError?.(new Error('Camera disconnected'));
-        close();
-      });
 
       // Create the document elements and dump the data to the canvas.
       const videoElement = document.createElement('video');
