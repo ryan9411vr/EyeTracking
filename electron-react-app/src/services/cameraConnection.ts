@@ -491,13 +491,17 @@ export function createUVCConnection({
 
       const constraints = {
         video: {
-          deviceId: { exact: deviceId }
+          deviceId: { exact: deviceId },
+          frameRate: { ideal: 60, max: 60 }
         }
       };
 
       // Connect to the UVC device and setup the handler when the camera gets unplugged.
       videoStream = await navigator.mediaDevices.getUserMedia(constraints);
       const videoTrack = videoStream.getVideoTracks()[0];
+      //console.log(videoTrack.getCapabilities());
+      //console.log(videoTrack.getConstraints());
+      //console.log(videoTrack.getSettings());
       videoTrack.addEventListener('ended', () => {
         console.error(`Camera on side ${side} has been disconnected.`);
         store.dispatch(
