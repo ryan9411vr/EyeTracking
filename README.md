@@ -119,6 +119,6 @@ Discord Server: https://discord.gg/QTyU4eNKrv
 9) Tune the output to your preference.
 10) Enjoy tracking. If everything works well, from here on you simply need to start the application, turn on your trackers, and you are good to go.
 
-# Acknowledgement
+# Acknowledgements
 
-Ninaboo - Help with themes, styling, localization, OSC parameters, avatar work and in game testing. Thanks for all the help!
+**Ninaboo** - Help with themes, styling, localization, OSC parameters, avatar work and in game testing. Thanks for all the help!
