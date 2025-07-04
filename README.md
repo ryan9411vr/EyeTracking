@@ -118,3 +118,7 @@ Discord Server: https://discord.gg/QTyU4eNKrv
 8) If all is configured properly, you should see your eyes move in VR. You can view OSC messages using Protokol or the OSC debug window in VRC.
 9) Tune the output to your preference.
 10) Enjoy tracking. If everything works well, from here on you simply need to start the application, turn on your trackers, and you are good to go.
+
+# Acknowledgement
+
+Ninaboo - Help with themes, styling, localization, OSC parameters, avatar work and in game testing. Thanks for all the help!
