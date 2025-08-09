@@ -38,18 +38,35 @@ export function isValidComPort(comPort: string): boolean {
 }
 
 /**
- * Determines whether a given string is a valid COM port, a valid IPv4:Port endpoint, or neither.
+ * Validates whether a given string conforms to a valid UVC index.
  *
- * It uses isValidComPort() for COM port validation and isValidIpPort() for IP:Port validation.
+ * The expected format is "<number>", where:
+ * - <number> is one or more digits.
+ *
+ * @param uvcIndex - The string to validate.
+ * @returns True if the string is a valid UVC index, false otherwise.
+ */
+export function isValidUvcIndex(uvcIndex: string): boolean {
+  const trimmed = uvcIndex.trim();
+  const regex = /^\d+$/;
+  return regex.test(trimmed);
+}
+
+/**
+ * Determines whether a given string is a valid COM port, a valid IPv4:Port endpoint, a valid UVC index, or neither.
+ *
+ * It uses isValidComPort() for COM port validation, isValidIpPort() for IP:Port validation, and isValidUvcIndex() for UVC index validation.
  *
  * @param input - The string to validate.
- * @returns "COM" if the string is a valid COM port, "IP" if it is a valid IPv4:Port, or "Neither" otherwise.
+ * @returns "COM" if the string is a valid COM port, "IP" if it is a valid IPv4:Port, "UVC" if the string is a valid UVC index, or "Neither" otherwise.
  */
-export function determinePortType(input: string): 'COM' | 'IP' | 'Neither' {
+export function determinePortType(input: string): 'COM' | 'IP' | 'UVC' | 'Neither' {
   if (isValidComPort(input)) {
     return 'COM';
   } else if (isValidIpPort(input)) {
     return 'IP';
+  } else if (isValidUvcIndex(input)) {
+    return 'UVC';
   }
   return 'Neither';
 }
