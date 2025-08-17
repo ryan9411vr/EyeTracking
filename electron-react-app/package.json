@@ -8,7 +8,7 @@
   "scripts": {
     "start": "cross-env NODE_ENV=development vite",
     "electron": "tsc --project tsconfig.electron.json && electron --disable-gpu-composting dist-electron/main.js",
-    "dev": "cross-env NODE_ENV=development \"vite\" \"npm:electron\"",
+    "dev": "cross-env NODE_ENV=development concurrently \"vite\" \"npm:electron\"",
     "build": "vite build",
     "compile-electron": "tsc --project tsconfig.electron.json",
     "build-all": "npm run build && npm run compile-electron",

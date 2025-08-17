@@ -112,10 +112,10 @@
       "errorSelectingModel": "Erreur lors de la sélection du dossier du modèle:"
     },
     "OpennessConfigurationCard": {
-      "header": "Configuration de l'ouverture",
+      "header": "Configuration de l’Ouverture",
       "fullyClosedLabel": "Complètement fermé (0.00 - {{max}})",
-      "neutralLabel": "Neutre ({{min}} - {{max}})",
-      "wideLabel": "Large ({{min}} - 1.00)"
+      "neutralLabel": "Partiellement ouvert ({{min}} - {{max}})",
+      "wideLabel": "Complètement ouvert ({{min}} - 1.00)"
     },
     "RightEyeStatusCard": {
       "label": "Données d'image - œil droit",

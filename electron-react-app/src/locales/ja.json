@@ -112,10 +112,10 @@
     "errorSelectingModel": "モデルフォルダの選択エラー:"
   },
   "OpennessConfigurationCard": {
-    "header": "オープンネス設定",
+    "header": "開き具合の設定",
     "fullyClosedLabel": "完全に閉じる (0.00 - {{max}})",
-    "neutralLabel": "中立 ({{min}} - {{max}})",
-    "wideLabel": "広い ({{min}} - 1.00)"
+    "neutralLabel": "半開き ({{min}} - {{max}})",
+    "wideLabel": "完全に開く ({{min}} - 1.00)"
   },
   "RightEyeStatusCard": {
     "label": "画像データ - 右目",

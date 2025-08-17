@@ -9,26 +9,23 @@
  */
 
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import { persistStore, persistReducer, createMigrate } from 'redux-persist';
+import { persistStore, persistReducer, createMigrate, PersistedState, MigrationManifest } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 
 import statusReducer from './slices/statusSlice';
 import configReducer, { initialState as configInitialState } from './slices/configSlice';
 import databaseReducer, { initialState as databaseInitialState } from './slices/databaseSlice';
 
-const migrations = {
-  3: (state: any) => {
+const migrations: MigrationManifest = {
+  // bump to this version in persistConfig to trigger a reset
+  4: (state: PersistedState) => {
+    // keep redux-persist metadata, reset your slices
     return {
-      ...state,
-      config: {
-        ...configInitialState,
-        ...state.config,
-      },
-      database: {
-        ...databaseInitialState,
-        ...state.database,
-      },
-    };
+      ...state, // preserves _persist and any non-whitelisted keys
+      config: configInitialState,
+      database: databaseInitialState,
+      // status isn't persisted; leave it to reducer init on app start
+    } as PersistedState;
   },
 };
 
@@ -40,7 +37,7 @@ const migrations = {
  */
 const persistConfig = {
   key: 'root',
-  version: 3, // If incremented, you'll need to add more migration steps.
+  version: 4, // If incremented, you'll need to add more migration steps.
   storage,
   whitelist: ['config', 'database'],
   migrate: createMigrate(migrations, { debug: false }),

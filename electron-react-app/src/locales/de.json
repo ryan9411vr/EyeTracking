@@ -112,10 +112,10 @@
       "errorSelectingModel": "Fehler bei der Auswahl des Modellordners:"
     },
     "OpennessConfigurationCard": {
-      "header": "Offenheitskonfiguration",
+      "header": "Öffnungs­konfiguration",
       "fullyClosedLabel": "Vollständig geschlossen (0.00 - {{max}})",
-      "neutralLabel": "Neutral ({{min}} - {{max}})",
-      "wideLabel": "Weit ({{min}} - 1.00)"
+      "neutralLabel": "Teilweise geöffnet ({{min}} - {{max}})",
+      "wideLabel": "Vollständig geöffnet ({{min}} - 1.00)"
     },
     "RightEyeStatusCard": {
       "label": "Bilddaten - rechtes Auge",

@@ -112,10 +112,10 @@
       "errorSelectingModel": "Error al seleccionar la carpeta del modelo:"
     },
     "OpennessConfigurationCard": {
-      "header": "Configuración de apertura",
+      "header": "Configuración de Apertura",
       "fullyClosedLabel": "Completamente cerrado (0.00 - {{max}})",
-      "neutralLabel": "Neutral ({{min}} - {{max}})",
-      "wideLabel": "Amplio ({{min}} - 1.00)"
+      "neutralLabel": "Parcialmente abierto ({{min}} - {{max}})",
+      "wideLabel": "Completamente abierto ({{min}} - 1.00)"
     },
     "RightEyeStatusCard": {
       "label": "Datos de imagen - ojo derecho",
