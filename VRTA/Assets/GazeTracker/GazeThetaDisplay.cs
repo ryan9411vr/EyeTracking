@@ -21,11 +21,6 @@ public class GazeThetaDisplay : MonoBehaviour
     private bool recordFlag = false;
     private bool deleteRecentFlag = false;
 
-    // Mode toggle: true = Mode1 (gaze), false = Mode2 (openness).
-    private bool isMode1 = true;
-    // Used to track the previous frame's B button state to detect a single press.
-    private bool previousBButtonState = false;
-
     // Data class used for JSON serialization.
     [System.Serializable]
     public class ThetaData
@@ -34,8 +29,8 @@ public class GazeThetaDisplay : MonoBehaviour
         public float theta2;
         public bool record;       // True if both grips are held for at least 1 sec.
         public bool deleteRecent; // True for one frame when right controller primary button is pressed.
-        public float openness;    // New field for openness.
-        public string mode;       // "gaze" or "openness".
+        public float openness;    // Unused. Left in just in case.
+        public string mode;       // "gaze"- only supported value.
     }
 
     // WebSocket behavior to handle theta data connections.
@@ -98,28 +93,7 @@ public class GazeThetaDisplay : MonoBehaviour
         {
             deleteRecentFlag = true;
         }
-
-        // --- Toggle between two modes when the "B" (secondary) button is pressed.
-        bool rightSecondaryPressed = false;
-        if (rightHand.isValid)
-            rightHand.TryGetFeatureValue(CommonUsages.secondaryButton, out rightSecondaryPressed);
-        // Toggle mode on the rising edge.
-        if (rightSecondaryPressed && !previousBButtonState)
-        {
-            isMode1 = !isMode1;
-            Debug.Log("Mode toggled to " + (isMode1 ? "gaze" : "openness"));
-        }
-        previousBButtonState = rightSecondaryPressed;
-
-        // Call logic based on the current mode.
-        if (isMode1)
-        {
-            ComputeDisplayAndBroadcastThetas();
-        }
-        else
-        {
-            ComputeOpennessAndBroadcast();
-        }
+        ComputeDisplayAndBroadcastThetas();
 
         // Reset the deleteRecent flag so that it is only true for one frame.
         deleteRecentFlag = false;
@@ -157,39 +131,8 @@ public class GazeThetaDisplay : MonoBehaviour
             theta2 = theta2,
             record = recordFlag,
             deleteRecent = deleteRecentFlag,
-            openness = 0f,         // In gaze mode, openness is set to 0.
+            openness = 0f, // Not used. Left in just in case though.
             mode = "gaze"
-        };
-        SendThetaData(data);
-    }
-
-    // ComputeOpennessAndBroadcast reads the right trigger value, scales openness,
-    // displays the trigger's inverse value, and broadcasts the data.
-    void ComputeOpennessAndBroadcast()
-    {
-        // Get the right-hand controller.
-        InputDevice rightHand = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
-        float triggerValue = 0f;
-        if (rightHand.isValid)
-        {
-            rightHand.TryGetFeatureValue(CommonUsages.trigger, out triggerValue);
-        }
-        // Invert the trigger value so that 0 means fully pressed and 1 means not pressed at all.
-        float displayValue = 1f - triggerValue;
-        // Scale the openness: when displayValue is 1, openness should be 0.75; when 0, openness is 0.
-        float opennessValue = displayValue * 0.75f;
-
-        string output = "Right Trigger (inverted): " + displayValue.ToString("F2");
-        UpdateDisplay(output);
-
-        ThetaData data = new ThetaData
-        {
-            theta1 = 0f,
-            theta2 = 0f,
-            record = recordFlag,
-            deleteRecent = deleteRecentFlag,
-            openness = opennessValue,
-            mode = "openness"
         };
         SendThetaData(data);
     }
