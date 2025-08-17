@@ -20,6 +20,7 @@ import { startCameraService } from "./services/cameraService";
 import { startThetaService } from "./services/thetaService";
 import { startTrainingDataService } from "./services/trainingDataService";
 import { startTrackingComputation } from "./services/trackingComputationService";
+import { startOpennessComputation } from "./services/opennessComputationService";
 import "./styles/global.css";
 
 /**
@@ -122,6 +123,7 @@ const Initializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const thetaServiceStarted = useRef(false);
   const trainingDataServiceStarted = useRef(false);
   const trackingComputationServiceStarted = useRef(false);
+  const opennessComputationServiceStarted = useRef(false);
 
   // Start each service if it hasn't been started yet.
   useEffect(() => {
@@ -140,6 +142,10 @@ const Initializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     if (!trackingComputationServiceStarted.current) {
       startTrackingComputation();
       trackingComputationServiceStarted.current = true;
+    }
+    if (!opennessComputationServiceStarted.current) {
+      startOpennessComputation();
+      opennessComputationServiceStarted.current = true;
     }
   }, []);
 

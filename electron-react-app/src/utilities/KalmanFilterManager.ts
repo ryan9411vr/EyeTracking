@@ -1,6 +1,6 @@
 // src/utilities/KalmanFilterManager.ts
 
-import { AdaptiveKalmanFilter } from './adaptiveKalmanFilter';
+import { AdaptiveKalmanFilter } from './AdaptiveKalmanFilter';
 import { ConfigState } from '../slices/configSlice';
 
 /**

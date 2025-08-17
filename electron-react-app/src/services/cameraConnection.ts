@@ -71,6 +71,15 @@ export interface MJPEGConnectionOptions {
   onError?: (error: any) => void; // Callback for handling fatal errors
 }
 
+/**
+ * Options for establishing a COM-based MJPEG connection.
+ */
+export interface MJPEGCOMConnectionOptions {
+  side: 'leftEye' | 'rightEye';
+  port: string; // The COM port string (e.g., "COM3")
+  onError?: (error: any) => void;
+}
+
 // Create worker instances for processing image data for each eye.
 // Adjust the file paths based on your project structure.
 const imageProcessorWorkerLeft = new Worker(new URL('../workers/imageProcessor.worker.js', import.meta.url));
@@ -90,7 +99,7 @@ const imageProcessorWorkerRight = new Worker(new URL('../workers/imageProcessor.
  * @param options - Connection options including the stream URL, camera side, and an optional error callback.
  * @returns An object with a `close` method to terminate the connection.
  */
-export function createMJPEGConnection({
+export function createMJPEGWIFIConnection({
   side,
   streamUrl,
   onError
@@ -318,6 +327,256 @@ export function createMJPEGConnection({
       }
     } finally {
       if (offlineTimeout) clearTimeout(offlineTimeout);
+    }
+  })();
+
+  return { close };
+}
+
+// Listen for camera frame updates via the preload-exposed API.
+window.comCameraAPI.onFrameUpdate(
+  (
+    _event: Electron.IpcRendererEvent,
+    payload: {
+      side: 'leftEye' | 'rightEye';
+      frame: string;
+      timestamp: number;
+      status: 'online' | 'offline';
+    }
+  ) => {
+    store.dispatch(
+      setCameraFrame({
+        side: payload.side,
+        frame: payload.frame,
+        timestamp: payload.timestamp,
+        status: payload.status,
+      })
+    );
+  }
+);
+
+/**
+ * Options for establishing a COM-based MJPEG connection.
+ */
+export interface MJPEGCOMConnectionOptions {
+  side: 'leftEye' | 'rightEye';
+  port: string; // COM port string, e.g., "COM3"
+  onError?: (error: any) => void;
+}
+
+/**
+ * Creates a COM-based MJPEG connection via IPC.
+ *
+ * This function sends an IPC message to the Electron main process to start the COM connection.
+ * It returns an object with a `close` method that, when invoked, instructs the main process to stop
+ * the COM connection.
+ *
+ * @param options - Connection options including the COM port, camera side
+ * @returns An object with a `close` method to terminate the COM connection.
+ */
+export function createMJPEGCOMConnection(
+  options: MJPEGCOMConnectionOptions
+): CameraConnection {
+  // Destructure and omit the onError property.
+  const { side, port } = options;
+  
+  // Send only cloneable properties via IPC.
+  window.comCameraAPI.startConnection({ side, port });
+
+  return {
+    close: () => {
+      window.comCameraAPI.stopConnection(side);
+    },
+  };
+}
+
+/**
+ * Options for establishing a UVC-based connection.
+ */
+export interface UVCConnectionOptions {
+  side: 'leftEye' | 'rightEye';
+  index: number; // UVC index number, e.g., "3"
+  onError?: (error: any) => void;
+}
+
+/**
+ * Creates a single UVC connection to fetch, process, and dispatch camera frames.
+ *
+ * This function:
+ * - Gets all available UVC devices.
+ * - Initiates an UVC stream for the given index and continuously reads the stream.
+ * - Processes each frame by correcting the contrast as the default contrast seems to be wrong.
+ * - Dispatches the processed frame to update the camera status in the Redux store.
+ * - Implements a timeout mechanism to mark the camera as offline if no new frame is received.
+ * - Exposes a close method to allow external cancellation of the connection.
+ *
+ * @param options - Connection options including the UVC index, camera side, and an optional error callback.
+ * @returns An object with a `close` method to terminate the connection.
+ */
+export function createUVCConnection({
+  side,
+  index,
+  onError,
+}: UVCConnectionOptions): CameraConnection {
+  const cancelFlag = { cancelled: false };
+  
+  let videoStream: MediaStream | null = null;
+  let captureInterval: ReturnType<typeof setInterval> | null = null;
+  let offlineTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  /**
+   * Closes the UVC connection.
+   *
+   * Marks the connection as cancelled, clears any pending timeouts,
+   * aborts the fetch, and cancels the stream reader.
+   */
+  function close() {
+    cancelFlag.cancelled = true;
+    if (captureInterval) {
+      clearInterval(captureInterval);
+      captureInterval = null;
+    }
+    if (offlineTimeout) {
+      clearTimeout(offlineTimeout);
+      offlineTimeout = null;
+    }
+    if (videoStream) {
+      videoStream.getTracks().forEach(track => track.stop());
+      videoStream = null;
+    }
+  }
+
+  /**
+   * Resets the offline timeout.
+   *
+   * If no new frame is received within the timeout period (currently 1000ms),
+   * the connection is marked offline, the store is updated, and the connection is closed.
+   */
+  function resetOfflineTimeout() {
+    if (offlineTimeout) clearTimeout(offlineTimeout);
+    offlineTimeout = setTimeout(() => {
+      if (!cancelFlag.cancelled) {
+        const currentState = store.getState();
+        const cameraData = currentState.status.imageData[side];
+        if (cameraData.status !== 'offline') {
+          store.dispatch(
+            setCameraFrame({
+              side,
+              frame: cameraData.frame,
+              timestamp: cameraData.timestamp || Date.now(),
+              status: 'offline',
+            })
+          );
+        }
+        close();
+        // Notify the creator that the connection is closing due to a stale frame.
+        if (onError) {
+          onError(new Error("Stale frame: connection closed due to no new frames"));
+        }
+      }
+    }, 1000);
+  }
+
+  // Main loop: fetch and parse the images.
+  (async () => {
+    try {
+
+      // Get all UVC devices and check if the right one was specified.
+      const allDevices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = allDevices.filter(d => d.kind === 'videoinput');
+      if (index < 0 || index >= videoDevices.length) {
+        throw new Error(`No camera found at index ${index}. Found ${videoDevices.length} video devices.`);
+      }
+      const deviceId = videoDevices[index].deviceId;
+
+      const constraints = {
+        video: {
+          deviceId: { exact: deviceId },
+          frameRate: { ideal: 60, max: 60 }
+        }
+      };
+
+      // Connect to the UVC device and setup the handler when the camera gets unplugged.
+      videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+      // Create the document elements and dump the data to the canvas.
+      const videoElement = document.createElement('video');
+      videoElement.srcObject = videoStream;
+      await videoElement.play();
+
+      resetOfflineTimeout();
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        console.error('Could not get canvas 2D context.');
+        throw new Error('Canvas 2D context not available.');
+      }
+
+      canvas.width = 240;
+      canvas.height = 240;
+
+      // Set a filter for fixing the messed up contrast. Seems to be needed for the OpenIris cameras.
+      ctx.filter = 'contrast(1.5)';
+
+      // Get original tracking rate.
+      const state = store.getState();
+      const {
+        trackingRate
+      } = state.config;
+      const trackingRateOld = trackingRate;
+
+      // Continuously capture the images.
+      captureInterval = setInterval(() => {
+        if (cancelFlag.cancelled) return;
+        if (!videoElement.videoWidth || !videoElement.videoHeight) return;
+
+        // Restart capture on tracking rate change.
+        const state = store.getState();
+        const {
+          trackingRate
+        } = state.config;
+        if (trackingRateOld != trackingRate) {
+          console.log('racking rate changed, restarting...');
+          store.dispatch(
+            setCameraFrame({
+              side,
+              frame: '',
+              timestamp: Date.now(),
+              status: 'offline',
+            })
+          );
+          onError?.(new Error('Tracking rate changed, restarting...'));
+          close();
+        }
+
+        // Pack and dispatch frame.
+        ctx?.drawImage(videoElement, 0, 0, 240, 240);
+        const dataUrl = canvas.toDataURL('image/jpeg');
+        store.dispatch(
+          setCameraFrame({
+            side,
+            frame: dataUrl,
+            timestamp: Date.now(),
+            status: 'online',
+          })
+        );
+
+        resetOfflineTimeout();
+      }, trackingRateOld);
+
+    } catch (error: any) {
+      console.error(`Error in UVC capture for ${side}:`, error);
+      store.dispatch(
+        setCameraFrame({
+          side,
+          frame: '',
+          timestamp: Date.now(),
+          status: 'offline',
+        })
+      );
+      onError?.(error);
     }
   })();
 

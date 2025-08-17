@@ -1,3 +1,5 @@
+/// <reference types="electron" />
+
 // src/global.d.ts
 
 /**
@@ -126,16 +128,6 @@ export interface ElectronAPI {
   sendOscFloatParam: (address: string, value: number) => Promise<void>;
 
   /**
-   * Loads a Markdown file from the given relative path.
-   *
-   * @param relativePath - The relative path to the Markdown file.
-   * @returns A promise that resolves with the contents of the file.
-   */
-  loadMdFile: (relativePath: string) => Promise<string>;
-
-  // Native OSC methods:
-
-  /**
    * Sends OSC messages for four eye data parameters (left and right pitch and yaw).
    *
    * @param leftPitch - The left eye pitch.
@@ -154,20 +146,67 @@ export interface ElectronAPI {
    */
   sendOscEyesClosedAmount: (value: number) => Promise<void>;
 
-  // Synchronous native method:
-
   /**
    * Requests the main process to trigger a focus fix (blurring and re-focusing the main window).
    * This fix is a workaround to deal with an open electron issue:
    * https://github.com/electron/electron/issues/31917
    */
   focusFix: () => void;
+
+  /**
+   * Generates a theta heatmap from the training data in the SQLite database.
+   * @param dbPath - The file path of the SQLite database.
+   * @returns A promise that resolves to a base64 encoded PNG string.
+   */
+  generateThetaHeatmap: (dbPath: string) => Promise<string>;
+
+  /**
+   * Generates a distribution plot from the training data in the SQLite database.
+   * @param dbPath - The file path of the SQLite database.
+   * @returns A promise that resolves to a base64 encoded PNG string.
+   */
+  generateOpennessDistributionPlot: (dbPath: string) => Promise<string>;
+
+  /**
+   * Start a process to launch training/converting containers.
+   */
+  runAutoencoderTraining: (config: {
+    dbPath: string;
+    trainedModelOutputPath: string;
+    convertedModelOutputPath: string;
+    trainCombined: boolean;
+    trainLeft: boolean;
+    trainRight: boolean;
+    convertCombined: boolean;
+    convertLeft: boolean;
+    convertRight: boolean;
+  }) => Promise<void>;
 }
 
-// Extend the global Window interface to include electronAPI.
+/**
+ * Exposed API for COM camera connections.
+ */
+export interface ComCameraAPI {
+  /**
+   * Starts a serial connection to an ESP32 camera.
+   */
+  startConnection: (options: { side: 'leftEye' | 'rightEye'; port: string; baudRate?: number }) => void;
+
+  /**
+   * Stops the serial connection for the given side.
+   */
+  stopConnection: (side: 'leftEye' | 'rightEye') => void;
+
+  /**
+   * Registers a callback for frame updates coming from the main process.
+   */
+  onFrameUpdate: (callback: (event: Electron.IpcRendererEvent, payload: any) => void) => void;
+}
+
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
+    comCameraAPI: ComCameraAPI;
   }
 }
 

@@ -22,6 +22,8 @@ import ThetaFlagsCard from "../card/ThetaFlagsCard";
 import ModelSelectionCard from "../card/ModelSelectionCard";
 import RecordTrainingDataCard from "../card/TrainingDataRecordingCard";
 import DatabaseSelectionCard from "../card/DatabaseSelectionCard";
+import GazeHeatmapCard from "../card/GazeHeatmapCard";
+import AutoencoderTrainingCard from "../card/AutoencoderTrainingCard";
 
 const DatabasePage: React.FC = () => {
   const { t } = useTranslation();
@@ -143,6 +145,10 @@ const DatabasePage: React.FC = () => {
           onConfirm={handleDialogConfirm}
         />
       )}
+      <AutoencoderTrainingCard />
+      <div className="grid grid-auto-fill-280 mb-1">
+        <GazeHeatmapCard />
+      </div>
     </div>
   );
 };

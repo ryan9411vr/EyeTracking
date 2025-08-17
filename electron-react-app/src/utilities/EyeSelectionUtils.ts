@@ -34,41 +34,41 @@ export class EyeSelectionUtils {
     const state = store.getState();
     const leftOnline = state.status.imageData.leftEye.status === 'online';
     const rightOnline = state.status.imageData.rightEye.status === 'online';
-    const tracking = state.status.tracking;
+    const status = state.status;
 
     if (leftOnline && rightOnline) {
       // When both eyes are online, verify that the independent theta2 values converge.
       // If they are diverging (leftTheta2 < rightTheta2), then the values are deemed unreliable.
       // Fallback to combined eye tracking values.
-      if (tracking.leftTheta2 - tracking.rightTheta2 < 0) {
+      if (status.latentsLeft.theta2 - status.latentsRight.theta2 < 0) {
         return {
-          leftTheta1: tracking.theta1,
-          leftTheta2: tracking.theta2,
-          rightTheta1: tracking.theta1,
-          rightTheta2: tracking.theta2,
+          leftTheta1: status.latents.theta1,
+          leftTheta2: status.latents.theta2,
+          rightTheta1: status.latents.theta1,
+          rightTheta2: status.latents.theta2,
         };
       }
       return {
-        leftTheta1: tracking.theta1,
-        leftTheta2: tracking.leftTheta2,
-        rightTheta1: tracking.theta1,
-        rightTheta2: tracking.rightTheta2,
+        leftTheta1: status.latents.theta1,
+        leftTheta2: status.latentsLeft.theta2,
+        rightTheta1: status.latents.theta1,
+        rightTheta2: status.latentsRight.theta2,
       };
     } else if (leftOnline) {
       // Only left eye is online; duplicate its theta values for the right eye.
       return {
-        leftTheta1: tracking.leftTheta1,
-        leftTheta2: tracking.leftTheta2,
-        rightTheta1: tracking.leftTheta1,
-        rightTheta2: tracking.leftTheta2,
+        leftTheta1: status.latentsLeft.theta1,
+        leftTheta2: status.latentsLeft.theta2,
+        rightTheta1: status.latentsLeft.theta1,
+        rightTheta2: status.latentsLeft.theta2,
       };
     } else if (rightOnline) {
       // Only right eye is online; duplicate its theta values for the left eye.
       return {
-        leftTheta1: tracking.rightTheta1,
-        leftTheta2: tracking.rightTheta2,
-        rightTheta1: tracking.rightTheta1,
-        rightTheta2: tracking.rightTheta2,
+        leftTheta1: status.latentsRight.theta1,
+        leftTheta2: status.latentsRight.theta2,
+        rightTheta1: status.latentsRight.theta1,
+        rightTheta2: status.latentsRight.theta2,
       };
     } else {
       // Neither eye is online; return default zero values.
@@ -97,22 +97,22 @@ export class EyeSelectionUtils {
     const state = store.getState();
     const leftOnline = state.status.imageData.leftEye.status === 'online';
     const rightOnline = state.status.imageData.rightEye.status === 'online';
-    const tracking = state.status.tracking;
+    const status = state.status;
 
     if (leftOnline && rightOnline) {
       return {
-        leftOpenness: tracking.leftOpenness,
-        rightOpenness: tracking.rightOpenness,
+        leftOpenness: status.opennessData.opennessLeft,
+        rightOpenness: status.opennessData.opennessRight,
       };
     } else if (leftOnline) {
       return {
-        leftOpenness: tracking.leftOpenness,
-        rightOpenness: tracking.leftOpenness,
+        leftOpenness: status.opennessData.opennessLeft,
+        rightOpenness: status.opennessData.opennessLeft,
       };
     } else if (rightOnline) {
       return {
-        leftOpenness: tracking.rightOpenness,
-        rightOpenness: tracking.rightOpenness,
+        leftOpenness: status.opennessData.opennessRight,
+        rightOpenness: status.opennessData.opennessRight,
       };
     } else {
       return {
@@ -135,22 +135,22 @@ export class EyeSelectionUtils {
     const state = store.getState();
     const leftOnline = state.status.imageData.leftEye.status === 'online';
     const rightOnline = state.status.imageData.rightEye.status === 'online';
-    const tracking = state.status.tracking;
+    const status = state.status;
 
     if (leftOnline && rightOnline) {
       return {
-        theta1: tracking.theta1,
-        theta2: tracking.theta2,
+        theta1: status.latents.theta1,
+        theta2: status.latents.theta2,
       };
     } else if (leftOnline) {
       return {
-        theta1: tracking.leftTheta1,
-        theta2: tracking.leftTheta2,
+        theta1: status.latentsLeft.theta1,
+        theta2: status.latentsLeft.theta2,
       };
     } else if (rightOnline) {
       return {
-        theta1: tracking.rightTheta1,
-        theta2: tracking.rightTheta2,
+        theta1: status.latentsRight.theta1,
+        theta2: status.latentsRight.theta2,
       };
     } else {
       return { theta1: 0, theta2: 0 };
@@ -170,14 +170,14 @@ export class EyeSelectionUtils {
     const state = store.getState();
     const leftOnline = state.status.imageData.leftEye.status === 'online';
     const rightOnline = state.status.imageData.rightEye.status === 'online';
-    const tracking = state.status.tracking;
+    const status = state.status;
 
     if (leftOnline && rightOnline) {
-      return tracking.openness;
+      return status.opennessData.opennessCombined;
     } else if (leftOnline) {
-      return tracking.leftOpenness;
+      return status.opennessData.opennessLeft;
     } else if (rightOnline) {
-      return tracking.rightOpenness;
+      return status.opennessData.opennessRight;
     } else {
       return 0;
     }

@@ -1,8 +1,11 @@
 // src/components/molecules/OpennessConfigurationMolecule.tsx
 
 /**
- * This slider uses rc-slider so it has 4 handles on it. Also since it transforms into 2 sliders
- * when you switch to independent openness, it is sensitive to css changes.
+ * This slider uses 2 handles.
+ * Labels:
+ *  - Left:   0 → slider1
+ *  - Middle: slider1 → slider2
+ *  - Right:  slider2 → 1
  */
 import React from 'react';
 import { Range } from 'rc-slider';
@@ -12,15 +15,15 @@ import { useTranslation } from 'react-i18next';
 import { RootState } from '../../store';
 import { setOpennessSliderHandles } from '../../slices/configSlice';
 
-const defaultSliderValues: [number, number, number, number] = [0.25, 0.35, 0.65, 0.8];
+const defaultSliderValues: [number, number] = [0.35, 0.65];
 
 const OpennessConfigurationMolecule: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
-  const opennessSliderHandles = useSelector(
-    (state: RootState) => state.config.opennessSliderHandles
-  ) || defaultSliderValues;
+  const opennessSliderHandles =
+    useSelector((state: RootState) => state.config.opennessSliderHandles) ||
+    defaultSliderValues;
 
   // Determine if we are in independent openness mode.
   const independentOpenness = useSelector(
@@ -28,15 +31,12 @@ const OpennessConfigurationMolecule: React.FC = () => {
   );
 
   // Tracking values from status slice.
-  const trackingOpenness = useSelector(
-    (state: RootState) => state.status.tracking.openness
-  ) || 0;
-  const trackingLeftOpenness = useSelector(
-    (state: RootState) => state.status.tracking.leftOpenness
-  ) || 0;
-  const trackingRightOpenness = useSelector(
-    (state: RootState) => state.status.tracking.rightOpenness
-  ) || 0;
+  const trackingOpenness =
+    useSelector((state: RootState) => state.status.opennessData.opennessCombined) || 0;
+  const trackingLeftOpenness =
+    useSelector((state: RootState) => state.status.opennessData.opennessLeft) || 0;
+  const trackingRightOpenness =
+    useSelector((state: RootState) => state.status.opennessData.opennessRight) || 0;
 
   // Retrieve the online status for both eyes from the status slice.
   const leftEyeStatus = useSelector(
@@ -59,7 +59,7 @@ const OpennessConfigurationMolecule: React.FC = () => {
       singleBarValue = trackingLeftOpenness;
     }
     if (leftEyeStatus !== 'online' && rightEyeStatus === 'online') {
-      singleBarValue = trackingRightOpenness;      
+      singleBarValue = trackingRightOpenness;
     }
   } else if (leftEyeStatus === 'online' && rightEyeStatus !== 'online') {
     singleBarValue = trackingLeftOpenness;
@@ -73,11 +73,12 @@ const OpennessConfigurationMolecule: React.FC = () => {
   const topBarValue = trackingLeftOpenness;
   const bottomBarValue = trackingRightOpenness;
 
-  const sliderValues: [number, number, number, number] = opennessSliderHandles ?? defaultSliderValues;
+  const sliderValues: [number, number] =
+    (opennessSliderHandles as [number, number]) ?? defaultSliderValues;
 
   const handleSliderChange = (values: number[]) => {
-    if (values.length === 4) {
-      dispatch(setOpennessSliderHandles(values as [number, number, number, number]));
+    if (values.length === 2) {
+      dispatch(setOpennessSliderHandles(values as [number, number]));
     }
   };
 
@@ -88,26 +89,17 @@ const OpennessConfigurationMolecule: React.FC = () => {
         <>
           {/* Top rail: tracks leftOpenness */}
           <div className="openness-custom-rail-top">
-            <div
-              className="slider-fill"
-              style={{ width: `${topBarValue * 100}%` }}
-            />
+            <div className="slider-fill" style={{ width: `${topBarValue * 100}%` }} />
           </div>
           {/* Bottom rail: tracks rightOpenness */}
           <div className="openness-custom-rail-bottom">
-            <div
-              className="slider-fill"
-              style={{ width: `${bottomBarValue * 100}%` }}
-            />
+            <div className="slider-fill" style={{ width: `${bottomBarValue * 100}%` }} />
           </div>
         </>
       ) : (
         // Single rail mode.
         <div className="openness-custom-rail">
-          <div
-            className="slider-fill"
-            style={{ width: `${singleBarValue * 100}%` }}
-          />
+          <div className="slider-fill" style={{ width: `${singleBarValue * 100}%` }} />
         </div>
       )}
 
@@ -122,19 +114,23 @@ const OpennessConfigurationMolecule: React.FC = () => {
         className="openness-range-slider mb-1"
       />
 
-      {/* Labels */}
+      {/* Labels: Left (0→s1), Middle (s1→s2), Right (s2→1) */}
       <div className="openness-label-container text-small">
         <span>
-          {t('OpennessConfigurationCard.fullyClosedLabel', { max: sliderValues[0].toFixed(2) })}
-        </span>
-        <span>
-          {t('OpennessConfigurationCard.neutralLabel', {
-            min: sliderValues[1].toFixed(2),
-            max: sliderValues[2].toFixed(2),
+          {t('OpennessConfigurationCard.fullyClosedLabel', {
+            max: sliderValues[0].toFixed(2),
           })}
         </span>
         <span>
-          {t('OpennessConfigurationCard.wideLabel', { min: sliderValues[3].toFixed(2) })}
+          {t('OpennessConfigurationCard.neutralLabel', {
+            min: sliderValues[0].toFixed(2),
+            max: sliderValues[1].toFixed(2),
+          })}
+        </span>
+        <span>
+          {t('OpennessConfigurationCard.wideLabel', {
+            min: sliderValues[1].toFixed(2),
+          })}
         </span>
       </div>
     </div>

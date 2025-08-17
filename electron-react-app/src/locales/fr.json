@@ -112,10 +112,10 @@
       "errorSelectingModel": "Erreur lors de la sélection du dossier du modèle:"
     },
     "OpennessConfigurationCard": {
-      "header": "Configuration de l'ouverture",
+      "header": "Configuration de l’Ouverture",
       "fullyClosedLabel": "Complètement fermé (0.00 - {{max}})",
-      "neutralLabel": "Neutre ({{min}} - {{max}})",
-      "wideLabel": "Large ({{min}} - 1.00)"
+      "neutralLabel": "Partiellement ouvert ({{min}} - {{max}})",
+      "wideLabel": "Complètement ouvert ({{min}} - 1.00)"
     },
     "RightEyeStatusCard": {
       "label": "Données d'image - œil droit",
@@ -190,7 +190,8 @@
       "horizontalExaggerationLabel": "Exagération horizontale : {{value}}",
       "horizontalExaggerationDescription": "(Échelle du mouvement horizontal)",
       "pitchOffsetLabel": "Décalage de pitch (degrés) : {{value}}°",
-      "pitchOffsetDescription": "(Ajuster le décalage de pitch)"
+      "pitchOffsetDescription": "(Ajuster le décalage de pitch)",
+      "nativeNeutralValueLabel": "VRC Native Neutral EyesClosedAmount: {{value}}"
     },
     "TrackingDataCard": {
       "header": "Données du regard",
@@ -204,6 +205,56 @@
       "tabStatus": "État",
       "tabDatabase": "Base de données",
       "tabTracking": "Suivi"
+    },
+    "OutputTrainedModelPathMolecule": {
+      "label": "Chemin de sortie du modèle entraîné : ",
+      "none": "N/D"
+    },
+    "OutputConvertedModelPathMolecule": {
+      "label": "Chemin de sortie du modèle converti : ",
+      "none": "N/D"
+    },
+    "AutoencoderTrainingCard": {
+      "header": "Interface d’entraînement d’autoencodeur",
+      "errorSelectingPath": "Erreur lors de la sélection du chemin"
+    },
+    "HeatmapCard": {
+      "heatmapHeader": "Carte thermique"
+    },
+    "HeatmapGenerateButton": {
+      "select": "Générer une carte thermique pour la base de données"
+    },
+    "CalibrateClosedButton": {
+      "select": "Calibrer — Fermé"
+    },
+    "CalibrateOpenButton": {
+      "select": "Calibrer — Ouvert"
+    },
+    "CalibrateWideButton": {
+      "select": "Calibrer — Séquence de clignement lent"
+    },
+    "CalibrationPlotCard": {
+      "header": "Graphiques de calibration",
+      "combined": "Combiné",
+      "leftEye": "Œil gauche",
+      "rightEye": "Œil droit"
+    },
+    "Training": {
+      "runAutoencoderTraining": "Lancer l’entraînement de l’autoencodeur",
+      "selectTrainedModelOutputPath": "Sélectionner le chemin de sortie du modèle entraîné",
+      "selectConvertedModelOutputPath": "Sélectionner le chemin de sortie du modèle converti",
+      "trainCombinedAutoencoder": "Entraîner l’autoencodeur combiné",
+      "trainCombinedAutoencoderTooltip": "Activer l’entraînement de l’autoencodeur combiné avec les données des deux yeux",
+      "trainLeftAutoencoder": "Entraîner l’autoencodeur gauche",
+      "trainLeftAutoencoderTooltip": "Activer l’entraînement de l’autoencodeur pour l’œil gauche uniquement",
+      "trainRightAutoencoder": "Entraîner l’autoencodeur droit",
+      "trainRightAutoencoderTooltip": "Activer l’entraînement de l’autoencodeur pour l’œil droit uniquement",
+      "convertCombinedAutoencoder": "Convertir l’autoencodeur combiné",
+      "convertCombinedAutoencoderTooltip": "Activer la conversion/l’export de l’autoencodeur combiné après l’entraînement",
+      "convertLeftAutoencoder": "Convertir l’autoencodeur gauche",
+      "convertLeftAutoencoderTooltip": "Activer la conversion/l’export de l’autoencodeur gauche après l’entraînement",
+      "convertRightAutoencoder": "Convertir l’autoencodeur droit",
+      "convertRightAutoencoderTooltip": "Activer la conversion/l’export de l’autoencodeur droit après l’entraînement"
     }
   }
   

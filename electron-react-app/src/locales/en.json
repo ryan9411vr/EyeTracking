@@ -115,8 +115,8 @@
     "OpennessConfigurationCard": {
         "header": "Openness Configuration",
         "fullyClosedLabel": "Fully Closed (0.00 - {{max}})",
-        "neutralLabel": "Neutral ({{min}} - {{max}})",
-        "wideLabel": "Wide ({{min}} - 1.00)"
+        "neutralLabel": "Partially Open ({{min}} - {{max}})",
+        "wideLabel": "Fully Open ({{min}} - 1.00)"
     },
     "RightEyeStatusCard": {
         "label": "Image Data - Right Eye",
@@ -190,10 +190,10 @@
         "verticalExaggerationDescription": "(Scale vertical movement)",
         "horizontalExaggerationLabel": "Horizontal Exaggeration: {{value}}",
         "horizontalExaggerationDescription": "(Scale horizontal movement)",
-        "nativeNeutralValueLabel": "VRC Native Neutral EyesClosedAmount: {{value}}",
         "nativeNeutralValueTooltip": "For EyesClosedAmount 0=Wide Open, <This Value>=Normal, 1=Closed Eyes",
         "pitchOffsetLabel": "Pitch Offset Degrees: {{value}}°",
-        "pitchOffsetDescription": "(Adjust pitch offset)"
+        "pitchOffsetDescription": "(Adjust pitch offset)",
+        "nativeNeutralValueLabel": "VRC Native Neutral EyesClosedAmount: {{value}}"
     },
     "TrackingDataCard": {
         "header": "Gaze Data",
@@ -207,6 +207,55 @@
         "tabStatus": "Status",
         "tabDatabase": "Database",
         "tabTracking": "Tracking"
+    },
+    "OutputTrainedModelPathMolecule": {
+        "label": "Trained Model Output Path: ",
+        "none": "N/A"
+    },
+    "OutputConvertedModelPathMolecule": {
+        "label": "Converted Model Output Path: ",
+        "none": "N/A"
+    },
+    "AutoencoderTrainingCard": {
+        "header": "Autoencoder Training Interface",
+        "errorSelectingPath": "Error Selecting Path"
+    },
+    "HeatmapCard": {
+        "heatmapHeader": "Heatmap"
+    },
+    "HeatmapGenerateButton": {
+        "select": "Generate Heatmap for DB"
+    },
+    "CalibrateClosedButton": {
+        "select": "Calibrate — Closed"
+    },
+    "CalibrateOpenButton": {
+        "select": "Calibrate — Open"
+    },
+    "CalibrateWideButton": {
+        "select": "Calibrate — Slow Blink Sequence"
+    },
+    "CalibrationPlotCard": {
+        "header": "Calibration Plots",
+        "combined": "Combined",
+        "leftEye": "Left Eye",
+        "rightEye": "Right Eye"
+    },
+    "Training": {
+        "runAutoencoderTraining": "Run Autoencoder Training",
+        "selectTrainedModelOutputPath": "Select Trained Model Output Path",
+        "selectConvertedModelOutputPath": "Select Converted Model Output Path",
+        "trainCombinedAutoencoder": "Train Combined Autoencoder",
+        "trainCombinedAutoencoderTooltip": "Enable training for the combined autoencoder using both eyes data",
+        "trainLeftAutoencoder": "Train Left Autoencoder",
+        "trainLeftAutoencoderTooltip": "Enable training for the left-eye-only autoencoder",
+        "trainRightAutoencoder": "Train Right Autoencoder",
+        "trainRightAutoencoderTooltip": "Enable training for the right-eye-only autoencoder",
+        "convertCombinedAutoencoder": "Convert Combined Autoencoder",
+        "convertCombinedAutoencoderTooltip": "Enable conversion/export of the combined autoencoder model after training",
+        "convertLeftAutoencoder": "Convert Left Autoencoder",
+        "convertLeftAutoencoderTooltip": "Enable conversion/export of the left-eye autoencoder model after training",
+        "convertRightAutoencoder": "Convert Right Autoencoder",
+        "convertRightAutoencoderTooltip": "Enable conversion/export of the right-eye autoencoder model after training"
     }
   }
-  

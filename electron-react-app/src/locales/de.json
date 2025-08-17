@@ -112,10 +112,10 @@
       "errorSelectingModel": "Fehler bei der Auswahl des Modellordners:"
     },
     "OpennessConfigurationCard": {
-      "header": "Offenheitskonfiguration",
+      "header": "Öffnungs­konfiguration",
       "fullyClosedLabel": "Vollständig geschlossen (0.00 - {{max}})",
-      "neutralLabel": "Neutral ({{min}} - {{max}})",
-      "wideLabel": "Weit ({{min}} - 1.00)"
+      "neutralLabel": "Teilweise geöffnet ({{min}} - {{max}})",
+      "wideLabel": "Vollständig geöffnet ({{min}} - 1.00)"
     },
     "RightEyeStatusCard": {
       "label": "Bilddaten - rechtes Auge",
@@ -190,7 +190,8 @@
       "horizontalExaggerationLabel": "Horizontale Übertreibung: {{value}}",
       "horizontalExaggerationDescription": "(Skaliere horizontale Bewegung)",
       "pitchOffsetLabel": "Pitch-Offset (Grad): {{value}}°",
-      "pitchOffsetDescription": "(Pitch-Offset anpassen)"
+      "pitchOffsetDescription": "(Pitch-Offset anpassen)",
+      "nativeNeutralValueLabel": "VRC Native Neutral EyesClosedAmount: {{value}}"
     },
     "TrackingDataCard": {
       "header": "Blickdaten",
@@ -204,6 +205,56 @@
       "tabStatus": "Status",
       "tabDatabase": "Datenbank",
       "tabTracking": "Tracking"
+    },
+    "OutputTrainedModelPathMolecule": {
+      "label": "Ausgabepfad des trainierten Modells: ",
+      "none": "k. A."
+    },
+    "OutputConvertedModelPathMolecule": {
+      "label": "Ausgabepfad des konvertierten Modells: ",
+      "none": "k. A."
+    },
+    "AutoencoderTrainingCard": {
+      "header": "Autoencoder-Trainingsoberfläche",
+      "errorSelectingPath": "Fehler beim Auswählen des Pfads"
+    },
+    "HeatmapCard": {
+      "heatmapHeader": "Heatmap"
+    },
+    "HeatmapGenerateButton": {
+      "select": "Heatmap für Datenbank erzeugen"
+    },
+    "CalibrateClosedButton": {
+      "select": "Kalibrieren — Geschlossen"
+    },
+    "CalibrateOpenButton": {
+      "select": "Kalibrieren — Offen"
+    },
+    "CalibrateWideButton": {
+      "select": "Kalibrieren — Langsame Blinksequenz"
+    },
+    "CalibrationPlotCard": {
+      "header": "Kalibrierungsdiagramme",
+      "combined": "Kombiniert",
+      "leftEye": "Linkes Auge",
+      "rightEye": "Rechtes Auge"
+    },
+    "Training": {
+      "runAutoencoderTraining": "Autoencoder-Training starten",
+      "selectTrainedModelOutputPath": "Ausgabepfad (trainiertes Modell) auswählen",
+      "selectConvertedModelOutputPath": "Ausgabepfad (konvertiertes Modell) auswählen",
+      "trainCombinedAutoencoder": "Kombinierten Autoencoder trainieren",
+      "trainCombinedAutoencoderTooltip": "Training für den kombinierten Autoencoder mit Daten beider Augen aktivieren",
+      "trainLeftAutoencoder": "Linken Autoencoder trainieren",
+      "trainLeftAutoencoderTooltip": "Training nur für den linken Autoencoder aktivieren",
+      "trainRightAutoencoder": "Rechten Autoencoder trainieren",
+      "trainRightAutoencoderTooltip": "Training nur für den rechten Autoencoder aktivieren",
+      "convertCombinedAutoencoder": "Kombinierten Autoencoder konvertieren",
+      "convertCombinedAutoencoderTooltip": "Konvertierung/Export des kombinierten Autoencoders nach dem Training aktivieren",
+      "convertLeftAutoencoder": "Linken Autoencoder konvertieren",
+      "convertLeftAutoencoderTooltip": "Konvertierung/Export des linken Autoencoders nach dem Training aktivieren",
+      "convertRightAutoencoder": "Rechten Autoencoder konvertieren",
+      "convertRightAutoencoderTooltip": "Konvertierung/Export des rechten Autoencoders nach dem Training aktivieren"
     }
   }
   

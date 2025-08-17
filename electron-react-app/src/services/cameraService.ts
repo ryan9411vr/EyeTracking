@@ -6,17 +6,17 @@
  * This module manages MJPEG camera connections for both the left and right eye. It automatically
  * establishes connections based on the current configuration, monitors for connection failures,
  * and attempts reconnection if necessary. The service also listens for configuration changes in the Redux
- * store to update or reinitialize connections, and it provides a method to gracefully shut down all camera connections.
+ * store to update or reinitialize connections.
  */
-
 import store from '../store';
-import { createMJPEGConnection, CameraConnection } from './cameraConnection';
+import { createMJPEGWIFIConnection, CameraConnection, createMJPEGCOMConnection, createUVCConnection } from './cameraConnection';
+import { determinePortType } from '../utilities/validation';
 
 // Global state for current connections and configuration.
 let leftConn: CameraConnection | null = null;
 let rightConn: CameraConnection | null = null;
-let currentLeftIpPort: string | null = null;
-let currentRightIpPort: string | null = null;
+let currentLeftAddress: string | null = null;
+let currentRightAddress: string | null = null;
 let shuttingDown = false;
 
 /**
@@ -40,6 +40,7 @@ function connectWithReattempt(
 
   const attemptConnection = () => {
     if (closed || shuttingDown) return;
+
     // Check forced offline flag before attempting connection.
     const configState = store.getState().config;
     if (side === 'leftEye' && configState.leftEyeForcedOffline) {
@@ -51,24 +52,69 @@ function connectWithReattempt(
       return;
     }
 
-    activeConnection = createMJPEGConnection({
-      side,
-      streamUrl: `http://${ipPort}/`,
-      onError: (error: any) => {
-        // Wait 2 seconds before retrying the connection.
-        setTimeout(() => {
-          const currentConfig = store.getState().config;
-          if (
-            !closed &&
-            !shuttingDown &&
-            currentConfig[side] === ipPort &&
-            (side === 'leftEye' ? !currentConfig.leftEyeForcedOffline : !currentConfig.rightEyeForcedOffline)
-          ) {
-            attemptConnection();
-          }
-        }, 2000);
-      }
-    });
+    // Determine the type of port.
+    const portType = determinePortType(ipPort);
+    if (portType === 'IP') {
+      activeConnection = createMJPEGWIFIConnection({
+        side,
+        streamUrl: `http://${ipPort}/`,
+        onError: () => {
+          // Wait 2 seconds before retrying the connection.
+          setTimeout(() => {
+            const currentConfig = store.getState().config;
+            if (
+              !closed &&
+              !shuttingDown &&
+              currentConfig[side] === ipPort &&
+              (side === 'leftEye' ? !currentConfig.leftEyeForcedOffline : !currentConfig.rightEyeForcedOffline)
+            ) {
+              attemptConnection();
+            }
+          }, 2000);
+        }
+      });
+    } else if (portType === 'COM') {
+      activeConnection = createMJPEGCOMConnection({
+        side,
+        port: ipPort,
+        onError: () => {
+          // Wait 2 seconds before retrying the connection.
+          setTimeout(() => {
+            const currentConfig = store.getState().config;
+            if (
+              !closed &&
+              !shuttingDown &&
+              currentConfig[side] === ipPort &&
+              (side === 'leftEye' ? !currentConfig.leftEyeForcedOffline : !currentConfig.rightEyeForcedOffline)
+            ) {
+              attemptConnection();
+            }
+          }, 2000);
+        }
+      });
+    } else if (portType === 'UVC') {
+      activeConnection = createUVCConnection({
+        side,
+        index: parseInt(ipPort),
+        onError: () => {
+          // Wait 2 seconds before retrying the connection.
+          setTimeout(() => {
+            const currentConfig = store.getState().config;
+            if (
+              !closed &&
+              !shuttingDown &&
+              currentConfig[side] === ipPort &&
+              (side === 'leftEye' ? !currentConfig.leftEyeForcedOffline : !currentConfig.rightEyeForcedOffline)
+            ) {
+              attemptConnection();
+            }
+          }, 2000);
+        }
+      });
+    } else {
+      console.error(`Camera Service: Invalid port type provided: ${ipPort}`);
+      return;
+    }
   };
 
   // Initiate the first connection attempt.
@@ -91,15 +137,15 @@ function connectWithReattempt(
  */
 export function startCameraService() {
   const state = store.getState();
-  currentLeftIpPort = state.config.leftEye;
-  currentRightIpPort = state.config.rightEye;
+  currentLeftAddress = state.config.leftEye;
+  currentRightAddress = state.config.rightEye;
 
   // Establish connections if not forced offline.
-  if (currentLeftIpPort && !state.config.leftEyeForcedOffline) {
-    leftConn = connectWithReattempt('leftEye', currentLeftIpPort);
+  if (currentLeftAddress && !state.config.leftEyeForcedOffline) {
+    leftConn = connectWithReattempt('leftEye', currentLeftAddress);
   }
-  if (currentRightIpPort && !state.config.rightEyeForcedOffline) {
-    rightConn = connectWithReattempt('rightEye', currentRightIpPort);
+  if (currentRightAddress && !state.config.rightEyeForcedOffline) {
+    rightConn = connectWithReattempt('rightEye', currentRightAddress);
   }
 
   // Subscribe to configuration changes.
@@ -118,8 +164,8 @@ export function startCameraService() {
         leftConn = null;
       }
     } else {
-      if (newLeft !== currentLeftIpPort) {
-        currentLeftIpPort = newLeft;
+      if (newLeft !== currentLeftAddress) {
+        currentLeftAddress = newLeft;
         if (leftConn) {
           leftConn.close();
           leftConn = null;
@@ -141,8 +187,8 @@ export function startCameraService() {
         rightConn = null;
       }
     } else {
-      if (newRight !== currentRightIpPort) {
-        currentRightIpPort = newRight;
+      if (newRight !== currentRightAddress) {
+        currentRightAddress = newRight;
         if (rightConn) {
           rightConn.close();
           rightConn = null;

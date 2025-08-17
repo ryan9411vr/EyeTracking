@@ -114,6 +114,10 @@
     margin-bottom: .5rem;
   }
   
+  .w-50 {
+    width: 65%;
+  }
+  
   .flex {
     display: flex;
   }

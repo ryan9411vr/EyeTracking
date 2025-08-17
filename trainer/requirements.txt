@@ -1,6 +1,0 @@
-tensorflow==2.10.1
-numpy==1.26.4
-pillow==11.1.0
-scikit-learn==1.6.1
-h5py==3.12.1
-matplotlib==3.10.1

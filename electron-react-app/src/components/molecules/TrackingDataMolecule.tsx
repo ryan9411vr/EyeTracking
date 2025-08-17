@@ -79,7 +79,7 @@ const Gauge: React.FC<GaugeProps> = ({
 };
 
 const getSingleGaugeData = (
-  trackingData: RootState['status']['tracking'],
+  statusState: RootState['status'],
   pitchOffset: number,
   independentEyes: boolean,
   leftEyeStatus: string,
@@ -89,22 +89,22 @@ const getSingleGaugeData = (
   let yaw = 0;
   if (!independentEyes) {
     if (leftEyeStatus === 'online' && rightEyeStatus === 'online') {
-      pitch = -1 * (trackingData.theta1 || 0);
-      yaw = trackingData.theta2 || 0;
+      pitch = -1 * (statusState.latents.theta1 || 0);
+      yaw = statusState.latents.theta2 || 0;
     } else if (leftEyeStatus === 'online' && rightEyeStatus !== 'online') {
-      pitch = -1 * (trackingData.leftTheta1 || 0);
-      yaw = trackingData.leftTheta2 || 0;
+      pitch = -1 * (statusState.latentsLeft.theta1 || 0);
+      yaw = statusState.latentsLeft.theta2 || 0;
     } else if (leftEyeStatus !== 'online' && rightEyeStatus === 'online') {
-      pitch = -1 * (trackingData.rightTheta1 || 0);
-      yaw = trackingData.rightTheta2 || 0;
+      pitch = -1 * (statusState.latentsRight.theta1 || 0);
+      yaw = statusState.latentsRight.theta2 || 0;
     }
   } else {
     if (leftEyeStatus === 'online' && rightEyeStatus !== 'online') {
-      pitch = -1 * (trackingData.leftTheta1 || 0);
-      yaw = trackingData.leftTheta2 || 0;
+      pitch = -1 * (statusState.latentsLeft.theta1 || 0);
+      yaw = statusState.latentsLeft.theta2 || 0;
     } else if (rightEyeStatus === 'online' && leftEyeStatus !== 'online') {
-      pitch = -1 * (trackingData.rightTheta1 || 0);
-      yaw = trackingData.rightTheta2 || 0;
+      pitch = -1 * (statusState.latentsRight.theta1 || 0);
+      yaw = statusState.latentsRight.theta2 || 0;
     }
   }
   const adjustedPitch = pitch + pitchOffset;
@@ -113,7 +113,7 @@ const getSingleGaugeData = (
 };
 
 const TrackingDataMolecule: React.FC = () => {
-  const trackingData = useSelector((state: RootState) => state.status.tracking);
+  const statusState = useSelector((state: RootState) => state.status);
   const { pitchOffset, independentEyes } = useSelector((state: RootState) => state.config);
   const leftEyeStatus = useSelector((state: RootState) => state.status.imageData.leftEye.status);
   const rightEyeStatus = useSelector((state: RootState) => state.status.imageData.rightEye.status);
@@ -122,14 +122,14 @@ const TrackingDataMolecule: React.FC = () => {
 
   if (dualDisplay) {
     // Compute left eye gauge data.
-    const leftPitch = -1 * (trackingData.leftTheta1 || 0);
-    const leftYaw = trackingData.leftTheta2 || 0;
+    const leftPitch = -1 * (statusState.latentsLeft.theta1 || 0);
+    const leftYaw = statusState.latentsLeft.theta2 || 0;
     const leftAdjustedPitch = leftPitch + pitchOffset;
     const leftPos = computeDotPos(leftAdjustedPitch, leftYaw, CENTER, GAUGE_RADIUS, MAX_ANGLE);
 
     // Compute right eye gauge data.
-    const rightPitch = -1 * (trackingData.rightTheta1 || 0);
-    const rightYaw = trackingData.rightTheta2 || 0;
+    const rightPitch = -1 * (statusState.latentsRight.theta1 || 0);
+    const rightYaw = statusState.latentsRight.theta2 || 0;
     const rightAdjustedPitch = rightPitch + pitchOffset;
     const rightPos = computeDotPos(rightAdjustedPitch, rightYaw, CENTER, GAUGE_RADIUS, MAX_ANGLE);
 
@@ -142,7 +142,7 @@ const TrackingDataMolecule: React.FC = () => {
   } else {
     // Single display mode.
     const { yaw, adjustedPitch, pos } = getSingleGaugeData(
-      trackingData,
+      statusState,
       pitchOffset,
       independentEyes,
       leftEyeStatus,

@@ -9,6 +9,27 @@ import { isValidIpPort } from '../utilities/validation';
  * This interface defines various settings and flags that control the application's behavior,
  * including connectivity settings, tracking options, Kalman filter parameters, UI preferences, and more.
  */
+
+/**
+ * Geometry produced by the openness calibration step.
+ * Duplicated here (instead of importing from the service)
+ * to avoid any circular-dependency headaches.
+ */
+export interface MappingParams {
+  /** projection of OPEN centroid onto axis */
+  projOpen: number;
+  /** projection of WIDE centroid (== axis length) */
+  projWide: number;
+  /** scaling factor 0‒projOpen → 0‒0.75 */
+  scaleA: number;
+  /** scaling factor projOpen‒projWide → 0.75‒1 */
+  scaleB: number;
+  /** closed-eye centroid (origin for projections) */
+  origin: [number, number, number];
+  /** unit vector pointing Closed → Wide */
+  axis: [number, number, number];
+}
+
 export interface ConfigState {
   headsetPort: string;
   leftEye: string;
@@ -37,7 +58,7 @@ export interface ConfigState {
   independentOpenness: boolean;
   activeEyeTracking: boolean;
   activeOpennessTracking: boolean;
-  opennessSliderHandles: [number, number, number, number];
+  opennessSliderHandles: [number, number];
   verticalExaggeration: number;
   horizontalExaggeration: number;
   oscPrefix: string;
@@ -51,11 +72,36 @@ export interface ConfigState {
   recordTrainingData: boolean;
   backgroundImageUrl: string;
   vrcNativeNeutralValue: number;
+  trainCombinedAutoencoder: boolean;
+  trainLeftAutoencoder: boolean;
+  trainRightAutoencoder: boolean;
+  convertCombinedAutoencoder: boolean;
+  convertLeftAutoencoder: boolean;
+  convertRightAutoencoder: boolean;
+  outputTrainedModelPath: string;
+  outputConvertedModelPath: string;
+  calibrationPlotEnabled: boolean;
+  calibrationPlotExpanded: boolean;
+  blinkOpenThreshold: number;
+  blinkCloseThreshold: number;
+
+  calibrationPlotData: {
+    combined: number[] | null;
+    left: number[] | null;
+    right: number[] | null;
+    smoothCombined: number[] | null;
+    smoothLeft: number[] | null;
+    smoothRight: number[] | null;
+  };
+
+  /** Persisted calibration parameters for openness mapping */
+  mapping: {
+    combined: MappingParams | null;
+    left: MappingParams | null;
+    right: MappingParams | null;
+  };
 }
 
-/**
- * The initial configuration state with default values.
- */
 export const initialState: ConfigState = {
   headsetPort: '5005',
   leftEye: '',
@@ -76,7 +122,7 @@ export const initialState: ConfigState = {
   kalmanQLow: 0.03,
   kalmanQHigh: 50,
   kalmanThreshold: 2,
-  kalmanThresholdOpenness: .03,
+  kalmanThresholdOpenness: 0.03,
   vrcftV1: false,
   vrcftV2: false,
   pitchOffset: 0,
@@ -84,7 +130,7 @@ export const initialState: ConfigState = {
   independentOpenness: false,
   activeEyeTracking: true,
   activeOpennessTracking: false,
-  opennessSliderHandles: [0.15, 0.65, 0.95, 1.0],
+  opennessSliderHandles: [0.2, 0.80],
   verticalExaggeration: 1,
   horizontalExaggeration: 1,
   oscPrefix: 'ft/f/',
@@ -92,35 +138,47 @@ export const initialState: ConfigState = {
   syncedEyeUpdates: false,
   blinkReleaseDelayMs: 25,
   eyelidBasedGazeTrust: true,
-  language: "English",
-  theme: "dark",
+  language: 'English',
+  theme: 'dark',
   activeTabIndex: 0,
   recordTrainingData: false,
   backgroundImageUrl: '',
-  vrcNativeNeutralValue: .25,
+  vrcNativeNeutralValue: 0.25,
+  trainCombinedAutoencoder: false,
+  trainLeftAutoencoder: false,
+  trainRightAutoencoder: false,
+  convertCombinedAutoencoder: false,
+  convertLeftAutoencoder: false,
+  convertRightAutoencoder: false,
+  outputTrainedModelPath: "",
+  outputConvertedModelPath: "",
+  calibrationPlotEnabled: true,
+  calibrationPlotExpanded: true,
+  blinkOpenThreshold: 0.8,
+  blinkCloseThreshold: 0.2,
+
+  calibrationPlotData: {
+    combined: null,
+    left: null,
+    right: null,
+    smoothCombined: null,
+    smoothLeft: null,
+    smoothRight: null,
+  },
+
+  mapping: {
+    combined: null,
+    left: null,
+    right: null,
+  },
 };
 
-/**
- * Updates the tracking configuration validity flag based on current settings.
- *
- * The tracking configuration is considered valid if the vrcOsc string is a valid IP:Port
- * and at least one tracking mode (vrcNative, vrcftV1, or vrcftV2) is enabled.
- *
- * @param state - The current configuration state.
- */
 const updateTrackingConfigValidity = (state: ConfigState) => {
   state.trackingConfigValidity =
     isValidIpPort(state.vrcOsc) &&
     (state.vrcNative || state.vrcftV1 || state.vrcftV2);
 };
 
-/**
- * Redux slice for managing configuration state.
- *
- * This slice contains actions and reducers for updating various configuration settings.
- * Some reducers update dependent state (for example, trackingConfigValidity) automatically
- * when related properties change.
- */
 const configSlice = createSlice({
   name: 'config',
   initialState,
@@ -225,7 +283,10 @@ const configSlice = createSlice({
     setActiveOpennessTracking(state, action: PayloadAction<boolean>) {
       state.activeOpennessTracking = action.payload;
     },
-    setOpennessSliderHandles(state, action: PayloadAction<[number, number, number, number]>) {
+    setOpennessSliderHandles(
+      state,
+      action: PayloadAction<[number, number]>,
+    ) {
       state.opennessSliderHandles = action.payload;
     },
     setVerticalExaggeration(state, action: PayloadAction<number>) {
@@ -267,10 +328,82 @@ const configSlice = createSlice({
     setvrcNativeNeutralValue(state, action: PayloadAction<number>) {
       state.vrcNativeNeutralValue = action.payload;
     },
+    setTrainCombinedAutoencoder(state, action: PayloadAction<boolean>) {
+      state.trainCombinedAutoencoder = action.payload;
+    },
+    setTrainLeftAutoencoder(state, action: PayloadAction<boolean>) {
+      state.trainLeftAutoencoder = action.payload;
+    },
+    setTrainRightAutoencoder(state, action: PayloadAction<boolean>) {
+      state.trainRightAutoencoder = action.payload;
+    },
+    setConvertCombinedAutoencoder(state, action: PayloadAction<boolean>) {
+      state.convertCombinedAutoencoder = action.payload;
+    },
+    setConvertLeftAutoencoder(state, action: PayloadAction<boolean>) {
+      state.convertLeftAutoencoder = action.payload;
+    },
+    setConvertRightAutoencoder(state, action: PayloadAction<boolean>) {
+      state.convertRightAutoencoder = action.payload;
+    },
+    setOutputTrainedModelPath(state, action: PayloadAction<string>) {
+      state.outputTrainedModelPath = action.payload;
+    },
+    setOutputConvertedModelPath(state, action: PayloadAction<string>) {
+      state.outputConvertedModelPath = action.payload;
+    },
+    setCalibrationPlotEnabled(state, action: PayloadAction<boolean>) {
+      state.calibrationPlotEnabled = action.payload;
+    },
+    toggleCalibrationPlotExpanded(state) {
+      state.calibrationPlotExpanded = !state.calibrationPlotExpanded;
+    },
+    setBlinkOpenThreshold(state, action: PayloadAction<number>) {
+      state.blinkOpenThreshold = action.payload;
+    },
+    setBlinkCloseThreshold(state, action: PayloadAction<number>) {
+      state.blinkCloseThreshold = action.payload;
+    },
+    setCalibrationPlotCombined(state, action: PayloadAction<{ pred: number[]; smooth?: number[] }>) {
+      state.calibrationPlotData.combined = action.payload.pred ?? null;
+      state.calibrationPlotData.smoothCombined = action.payload.smooth ?? null;
+    },
+    setCalibrationPlotLeft(state, action: PayloadAction<{ pred: number[]; smooth?: number[] }>) {
+      state.calibrationPlotData.left = action.payload.pred ?? null;
+      state.calibrationPlotData.smoothLeft = action.payload.smooth ?? null;
+    },
+    setCalibrationPlotRight(state, action: PayloadAction<{ pred: number[]; smooth?: number[] }>) {
+      state.calibrationPlotData.right = action.payload.pred ?? null;
+      state.calibrationPlotData.smoothRight = action.payload.smooth ?? null;
+    },
+    clearCalibrationPlots(state) {
+      state.calibrationPlotData = {
+        combined: null,
+        left: null,
+        right: null,
+        smoothCombined: null,
+        smoothLeft: null,
+        smoothRight: null,
+      };
+    },
+
+    setMappings(
+      state,
+      action: PayloadAction<{
+        combined: MappingParams;
+        left: MappingParams;
+        right: MappingParams;
+      }>,
+    ) {
+      state.mapping = {
+        combined: action.payload.combined,
+        left: action.payload.left,
+        right: action.payload.right,
+      };
+    },
   },
 });
 
-// Export all actions for use in components.
 export const {
   setHeadsetPort,
   setLeftEye,
@@ -312,6 +445,23 @@ export const {
   setRecordTrainingData,
   setBackgroundImageUrl,
   setvrcNativeNeutralValue,
+  setTrainCombinedAutoencoder,
+  setTrainLeftAutoencoder,
+  setTrainRightAutoencoder,
+  setConvertCombinedAutoencoder,
+  setConvertLeftAutoencoder,
+  setConvertRightAutoencoder,
+  setMappings,
+  setOutputTrainedModelPath,
+  setOutputConvertedModelPath,
+  setCalibrationPlotEnabled,
+  toggleCalibrationPlotExpanded,
+  setBlinkOpenThreshold,
+  setBlinkCloseThreshold,
+  setCalibrationPlotCombined,
+  setCalibrationPlotLeft,
+  setCalibrationPlotRight,
+  clearCalibrationPlots,
 } = configSlice.actions;
 
 export default configSlice.reducer;
