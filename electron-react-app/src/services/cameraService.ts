@@ -9,7 +9,7 @@
  * store to update or reinitialize connections.
  */
 import store from '../store';
-import { createMJPEGWIFIConnection, CameraConnection, createMJPEGCOMConnection } from './cameraConnection';
+import { createMJPEGWIFIConnection, CameraConnection, createMJPEGCOMConnection, createUVCConnection } from './cameraConnection';
 import { determinePortType } from '../utilities/validation';
 
 // Global state for current connections and configuration.
@@ -77,6 +77,25 @@ function connectWithReattempt(
       activeConnection = createMJPEGCOMConnection({
         side,
         port: ipPort,
+        onError: () => {
+          // Wait 2 seconds before retrying the connection.
+          setTimeout(() => {
+            const currentConfig = store.getState().config;
+            if (
+              !closed &&
+              !shuttingDown &&
+              currentConfig[side] === ipPort &&
+              (side === 'leftEye' ? !currentConfig.leftEyeForcedOffline : !currentConfig.rightEyeForcedOffline)
+            ) {
+              attemptConnection();
+            }
+          }, 2000);
+        }
+      });
+    } else if (portType === 'UVC') {
+      activeConnection = createUVCConnection({
+        side,
+        index: parseInt(ipPort),
         onError: () => {
           // Wait 2 seconds before retrying the connection.
           setTimeout(() => {
