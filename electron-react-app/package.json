@@ -6,13 +6,12 @@
   "author": "Ryan",
   "main": "dist-electron/main.js",
   "scripts": {
-    "rebuild-native": "electron-rebuild -f --only @tensorflow/tfjs-node-gpu && node ./scripts/patch-tfjs-dll.js",
     "start": "cross-env NODE_ENV=development vite",
-    "electron": "npm run rebuild-native && tsc --project tsconfig.electron.json && electron --disable-gpu-composting dist-electron/main.js",
-    "dev": "cross-env NODE_ENV=development TF_FORCE_GPU_ALLOW_GROWTH=true TF_GPU_ALLOCATOR=cuda_malloc_async TF_CUDNN_WORKSPACE_LIMIT_IN_MB=256 concurrently \"vite\" \"npm:electron\"",
+    "electron": "tsc --project tsconfig.electron.json && electron --disable-gpu-composting dist-electron/main.js",
+    "dev": "cross-env NODE_ENV=development \"vite\" \"npm:electron\"",
     "build": "vite build",
     "compile-electron": "tsc --project tsconfig.electron.json",
-    "build-all": "npm run rebuild-native && npm run build && npm run compile-electron",
+    "build-all": "npm run build && npm run compile-electron",
     "build-electron": "npm run build-all && electron-builder",
     "electron:build": "npm run build-electron"
   },
