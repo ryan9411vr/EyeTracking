@@ -190,7 +190,8 @@
     "horizontalExaggerationLabel": "水平拡大率: {{value}}",
     "horizontalExaggerationDescription": "(水平移動の拡大率)",
     "pitchOffsetLabel": "ピッチオフセット: {{value}}°",
-    "pitchOffsetDescription": "(ピッチオフセットの調整)"
+    "pitchOffsetDescription": "(ピッチオフセットの調整)",
+    "nativeNeutralValueLabel": "VRC ネイティブのニュートラル EyesClosedAmount: {{value}}"
   },
   "TrackingDataCard": {
     "header": "視線データ",
@@ -204,5 +205,55 @@
     "tabStatus": "ステータス",
     "tabDatabase": "データベース",
     "tabTracking": "トラッキング"
+  },
+  "OutputTrainedModelPathMolecule": {
+    "label": "学習済みモデルの出力パス: ",
+    "none": "該当なし"
+  },
+  "OutputConvertedModelPathMolecule": {
+    "label": "変換済みモデルの出力パス: ",
+    "none": "該当なし"
+  },
+  "AutoencoderTrainingCard": {
+    "header": "オートエンコーダー学習インターフェース",
+    "errorSelectingPath": "パスの選択エラー"
+  },
+  "HeatmapCard": {
+    "heatmapHeader": "ヒートマップ"
+  },
+  "HeatmapGenerateButton": {
+    "select": "データベースのヒートマップを生成"
+  },
+  "CalibrateClosedButton": {
+    "select": "キャリブレーション — 閉眼"
+  },
+  "CalibrateOpenButton": {
+    "select": "キャリブレーション — 開眼"
+  },
+  "CalibrateWideButton": {
+    "select": "キャリブレーション — スローブリンク シーケンス"
+  },
+  "CalibrationPlotCard": {
+    "header": "キャリブレーションプロット",
+    "combined": "合成",
+    "leftEye": "左目",
+    "rightEye": "右目"
+  },
+  "Training": {
+    "runAutoencoderTraining": "オートエンコーダーの学習を実行",
+    "selectTrainedModelOutputPath": "学習済みモデルの出力パスを選択",
+    "selectConvertedModelOutputPath": "変換済みモデルの出力パスを選択",
+    "trainCombinedAutoencoder": "合成オートエンコーダーを学習",
+    "trainCombinedAutoencoderTooltip": "両目のデータを使用して合成オートエンコーダーの学習を有効化",
+    "trainLeftAutoencoder": "左目オートエンコーダーを学習",
+    "trainLeftAutoencoderTooltip": "左目のみのオートエンコーダー学習を有効化",
+    "trainRightAutoencoder": "右目オートエンコーダーを学習",
+    "trainRightAutoencoderTooltip": "右目のみのオートエンコーダー学習を有効化",
+    "convertCombinedAutoencoder": "合成オートエンコーダーを変換",
+    "convertCombinedAutoencoderTooltip": "学習後に合成オートエンコーダーの変換/エクスポートを有効化",
+    "convertLeftAutoencoder": "左目オートエンコーダーを変換",
+    "convertLeftAutoencoderTooltip": "学習後に左目オートエンコーダーの変換/エクスポートを有効化",
+    "convertRightAutoencoder": "右目オートエンコーダーを変換",
+    "convertRightAutoencoderTooltip": "学習後に右目オートエンコーダーの変換/エクスポートを有効化"
   }
 }

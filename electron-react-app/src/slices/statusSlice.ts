@@ -2,31 +2,47 @@
 
 /**
  * @module statusSlice
- * 
- * Manages connection and data status for camera frames, theta data, and tracking data.
+ *
+ * Manages connection and data status for camera frames, theta data, tracking
+ * data, latent vectors, and calibration‑button state.
  */
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   toggleLeftEyeForcedOffline,
   toggleRightEyeForcedOffline,
-} from '../slices/configSlice';
+} from "../slices/configSlice";
 
-/** Connection status for components */
-export type ConnectionStatus = 'online' | 'offline' | 'warning';
+export type ConnectionStatus = "online" | "offline" | "warning";
 
-/** Camera frame data with timestamp and connection status */
 export interface CameraFrame {
   frame: string;
   timestamp: number | null;
   status: ConnectionStatus;
 }
 
-/** Theta measurement data and state */
+export interface LatentData {
+  theta1: number;
+  theta2: number;
+  offsetX: number;
+  offsetY: number;
+  rotation: number;
+  unsupervised1: number;
+  unsupervised2: number;
+  unsupervised3: number;
+  timestamp: number | null;
+}
+
+export interface OpennessData {
+  opennessCombined: number;
+  opennessLeft: number;
+  opennessRight: number;
+}
+
 export interface ThetaData {
   theta1: number;
   theta2: number;
-  status: 'online' | 'offline';
+  status: "online" | "offline";
   timestamp: number | null;
   record: boolean;
   deleteRecent: boolean;
@@ -34,26 +50,6 @@ export interface ThetaData {
   mode: string;
 }
 
-/** Detailed tracking data for theta and openness (overall, left, and right) */
-export interface TrackingData {
-  theta1: number;
-  theta2: number;
-  thetaTimestamp: number | null;
-  openness: number;
-  opennessTimestamp: number | null;
-  rightTheta1: number;
-  rightTheta2: number;
-  rightThetaTimestamp: number | null;
-  rightOpenness: number;
-  rightOpennessTimestamp: number | null;
-  leftTheta1: number;
-  leftTheta2: number;
-  leftThetaTimestamp: number | null;
-  leftOpenness: number;
-  leftOpennessTimestamp: number | null;
-}
-
-/** Combined status state for the application */
 export interface StatusState {
   database: ConnectionStatus;
   imageData: {
@@ -61,52 +57,71 @@ export interface StatusState {
     rightEye: CameraFrame;
   };
   theta: ThetaData;
-  tracking: TrackingData;
+  latents: LatentData;
+  latentsLeft: LatentData;
+  latentsRight: LatentData;
+  opennessData: OpennessData;
+  heatmapImageData: string | null;
+
+  /** Calibration‑button momentary state */
+  closedCalibrationActive: boolean;
+  openCalibrationActive: boolean;
+  blinkCalibrationActive: boolean;
 }
 
+const zeroLatents: LatentData = {
+  theta1: 0,
+  theta2: 0,
+  offsetX: 0,
+  offsetY: 0,
+  rotation: 0,
+  unsupervised1: 0,
+  unsupervised2: 0,
+  unsupervised3: 0,
+  timestamp: null,
+};
+
 const initialState: StatusState = {
-  database: 'offline',
+  database: "offline",
   imageData: {
-    leftEye: { frame: '', timestamp: null, status: 'offline' },
-    rightEye: { frame: '', timestamp: null, status: 'offline' },
+    leftEye: { frame: "", timestamp: null, status: "offline" },
+    rightEye: { frame: "", timestamp: null, status: "offline" },
   },
   theta: {
     theta1: 0,
     theta2: 0,
-    status: 'offline',
+    status: "offline",
     timestamp: null,
     record: false,
     deleteRecent: false,
     openness: 0.75,
-    mode: 'gaze',
+    mode: "gaze",
   },
-  tracking: {
-    theta1: 0,
-    theta2: 0,
-    thetaTimestamp: null,
-    openness: 0.75,
-    opennessTimestamp: null,
-    rightTheta1: 0,
-    rightTheta2: 0,
-    rightThetaTimestamp: null,
-    rightOpenness: 0.75,
-    rightOpennessTimestamp: null,
-    leftTheta1: 0,
-    leftTheta2: 0,
-    leftThetaTimestamp: null,
-    leftOpenness: 0.75,
-    leftOpennessTimestamp: null,
+  latents: { ...zeroLatents },
+  latentsLeft: { ...zeroLatents },
+  latentsRight: { ...zeroLatents },
+  opennessData: {
+    opennessCombined: 0,
+    opennessLeft: 0,
+    opennessRight: 0,
   },
+  heatmapImageData: null,
+
+  /* Calibration buttons */
+  closedCalibrationActive: false,
+  openCalibrationActive: false,
+  blinkCalibrationActive: false,
 };
 
 const statusSlice = createSlice({
-  name: 'status',
+  name: "status",
   initialState,
   reducers: {
+    /* Camera & theta */
     setCameraFrame(
       state,
       action: PayloadAction<{
-        side: 'leftEye' | 'rightEye';
+        side: "leftEye" | "rightEye";
         frame: string;
         timestamp: number;
         status: ConnectionStatus;
@@ -115,6 +130,7 @@ const statusSlice = createSlice({
       const { side, frame, timestamp, status: connStatus } = action.payload;
       state.imageData[side] = { frame, timestamp, status: connStatus };
     },
+
     setThetaData(
       state,
       action: PayloadAction<{
@@ -127,95 +143,72 @@ const statusSlice = createSlice({
         mode: string;
       }>
     ) {
-      state.theta.theta1 = action.payload.theta1;
-      state.theta.theta2 = action.payload.theta2;
-      state.theta.timestamp = action.payload.timestamp;
-      state.theta.record = action.payload.record;
-      state.theta.deleteRecent = action.payload.deleteRecent;
-      state.theta.openness = action.payload.openness;
-      state.theta.mode = action.payload.mode;
-      state.theta.status = 'online';
+      state.theta = {
+        ...state.theta,
+        theta1: action.payload.theta1,
+        theta2: action.payload.theta2,
+        timestamp: action.payload.timestamp,
+        record: action.payload.record,
+        deleteRecent: action.payload.deleteRecent,
+        openness: action.payload.openness,
+        mode: action.payload.mode,
+        status: "online",
+      };
     },
-    setThetaStatus(state, action: PayloadAction<'online' | 'offline'>) {
+
+    setThetaStatus(state, action: PayloadAction<"online" | "offline">) {
       state.theta.status = action.payload;
     },
-    updateTheta(
-      state,
-      action: PayloadAction<{
-        theta1: number;
-        theta2: number;
-        timestamp: number;
-      }>
-    ) {
-      state.tracking.theta1 = action.payload.theta1;
-      state.tracking.theta2 = action.payload.theta2;
-      state.tracking.thetaTimestamp = action.payload.timestamp;
+
+    /* Latent vectors */
+    updateLatents(state, action: PayloadAction<LatentData>) {
+      state.latents = { ...action.payload };
     },
-    updateOpenness(
-      state,
-      action: PayloadAction<{
-        openness: number;
-        timestamp: number;
-      }>
-    ) {
-      state.tracking.openness = action.payload.openness;
-      state.tracking.opennessTimestamp = action.payload.timestamp;
+    updateLatentsLeft(state, action: PayloadAction<LatentData>) {
+      state.latentsLeft = { ...action.payload };
     },
-    updateRightTheta(
-      state,
-      action: PayloadAction<{
-        rightTheta1: number;
-        rightTheta2: number;
-        timestamp: number;
-      }>
-    ) {
-      state.tracking.rightTheta1 = action.payload.rightTheta1;
-      state.tracking.rightTheta2 = action.payload.rightTheta2;
-      state.tracking.rightThetaTimestamp = action.payload.timestamp;
+    updateLatentsRight(state, action: PayloadAction<LatentData>) {
+      state.latentsRight = { ...action.payload };
     },
-    updateRightOpenness(
-      state,
-      action: PayloadAction<{
-        rightOpenness: number;
-        timestamp: number;
-      }>
-    ) {
-      state.tracking.rightOpenness = action.payload.rightOpenness;
-      state.tracking.rightOpennessTimestamp = action.payload.timestamp;
+
+    /* Openness (Computed from Latents) */
+    updateOpennessCombined(state, action: PayloadAction<number>) {
+      state.opennessData.opennessCombined = action.payload;
     },
-    updateLeftTheta(
-      state,
-      action: PayloadAction<{
-        leftTheta1: number;
-        leftTheta2: number;
-        timestamp: number;
-      }>
-    ) {
-      state.tracking.leftTheta1 = action.payload.leftTheta1;
-      state.tracking.leftTheta2 = action.payload.leftTheta2;
-      state.tracking.leftThetaTimestamp = action.payload.timestamp;
+    updateOpennessLeft(state, action: PayloadAction<number>) {
+      state.opennessData.opennessLeft = action.payload;
     },
-    updateLeftOpenness(
-      state,
-      action: PayloadAction<{
-        leftOpenness: number;
-        timestamp: number;
-      }>
-    ) {
-      state.tracking.leftOpenness = action.payload.leftOpenness;
-      state.tracking.leftOpennessTimestamp = action.payload.timestamp;
+    updateOpennessRight(state, action: PayloadAction<number>) {
+      state.opennessData.opennessRight = action.payload;
+    },
+
+    /* Calibration‑button reducers */
+    setClosedCalibrationActive(state, action: PayloadAction<boolean>) {
+      state.closedCalibrationActive = action.payload;
+    },
+    setOpenCalibrationActive(state, action: PayloadAction<boolean>) {
+      state.openCalibrationActive = action.payload;
+    },
+    setBlinkCalibrationActive(state, action: PayloadAction<boolean>) {
+      state.blinkCalibrationActive = action.payload;
+    },
+
+    /* Misc visuals / job ids */
+    setHeatmapImageData(state, action: PayloadAction<string | null>) {
+      state.heatmapImageData = action.payload;
     },
   },
+
   extraReducers: (builder) => {
     builder.addCase(toggleLeftEyeForcedOffline, (state) => {
-      state.imageData.leftEye.frame = '';
+      state.imageData.leftEye.frame = "";
       state.imageData.leftEye.timestamp = Date.now();
-      state.imageData.leftEye.status = 'offline';
+      state.imageData.leftEye.status = "offline";
     });
     builder.addCase(toggleRightEyeForcedOffline, (state) => {
-      state.imageData.rightEye.frame = '';
+      state.imageData.rightEye.frame = "";
       state.imageData.rightEye.timestamp = Date.now();
-      state.imageData.rightEye.status = 'offline';
+      state.imageData.rightEye.status = "offline";
     });
   },
 });
@@ -224,12 +217,16 @@ export const {
   setCameraFrame,
   setThetaData,
   setThetaStatus,
-  updateTheta,
-  updateOpenness,
-  updateRightTheta,
-  updateRightOpenness,
-  updateLeftTheta,
-  updateLeftOpenness,
+  setHeatmapImageData,
+  updateLatents,
+  updateLatentsLeft,
+  updateLatentsRight,
+  setClosedCalibrationActive,
+  setOpenCalibrationActive,
+  setBlinkCalibrationActive,
+  updateOpennessCombined,
+  updateOpennessLeft,
+  updateOpennessRight,
 } = statusSlice.actions;
 
 export default statusSlice.reducer;

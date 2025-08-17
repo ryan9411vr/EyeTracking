@@ -8,7 +8,22 @@
  * database interactions, and OSC (Open Sound Control) communications while maintaining context isolation
  * and adhering to security best practices for Electron applications.
  */
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+
+export interface TrainingConfig {
+  dbPath: string;
+  outputDir: string;
+  epochs?: number;
+  batchSize?: number;
+}
+
+export type ProgressType = 'epochEnd' | 'batchEnd' | 'done' | 'error';
+
+export interface TrainProgressData {
+  id: string;
+  type: ProgressType;
+  payload: any;
+}
 
 contextBridge.exposeInMainWorld('electronAPI', {
   selectFolder: async (): Promise<string> => {
@@ -67,9 +82,27 @@ contextBridge.exposeInMainWorld('electronAPI', {
   sendOscEyesClosedAmount: async (value: number): Promise<void> => {
     return await ipcRenderer.invoke('send-osc-eyes-closed-amount', value);
   },
-  loadMdFile: (relativePath: string) => ipcRenderer.invoke('load-md-file', relativePath),
   getLocale: (): string => ipcRenderer.sendSync('get-locale'),
   focusFix: () => ipcRenderer.send('focus-fix'),
+  generateThetaHeatmap: async (dbPath: string): Promise<string> => {
+    return await ipcRenderer.invoke('generate-theta-heatmap', dbPath);
+  },
+  generateOpennessDistributionPlot: async (dbPath: string): Promise<string> => {
+    return await ipcRenderer.invoke('create-openness-distribution-plot', dbPath);
+  },
+  runAutoencoderTraining: async (config: {
+    dbPath: string;
+    trainedModelOutputPath: string;
+    convertedModelOutputPath: string;
+    trainCombined: boolean;
+    trainLeft: boolean;
+    trainRight: boolean;
+    convertCombined: boolean;
+    convertLeft: boolean;
+    convertRight: boolean;
+  }): Promise<void> => {
+    return await ipcRenderer.invoke('autoencoder:run', config);
+  },
 });
 
 contextBridge.exposeInMainWorld('comCameraAPI', {

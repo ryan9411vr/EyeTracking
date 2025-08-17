@@ -190,7 +190,8 @@
       "horizontalExaggerationLabel": "Exageración horizontal: {{value}}",
       "horizontalExaggerationDescription": "(Escala el movimiento horizontal)",
       "pitchOffsetLabel": "Offset de pitch (grados): {{value}}°",
-      "pitchOffsetDescription": "(Ajuste el offset de pitch)"
+      "pitchOffsetDescription": "(Ajuste el offset de pitch)",
+      "nativeNeutralValueLabel": "VRC Native Neutral EyesClosedAmount: {{value}}"
     },
     "TrackingDataCard": {
       "header": "Datos de mirada",
@@ -204,6 +205,56 @@
       "tabStatus": "Estado",
       "tabDatabase": "Base de datos",
       "tabTracking": "Tracking"
+    },
+    "OutputTrainedModelPathMolecule": {
+      "label": "Ruta de salida del modelo entrenado: ",
+      "none": "No disponible"
+    },
+    "OutputConvertedModelPathMolecule": {
+      "label": "Ruta de salida del modelo convertido: ",
+      "none": "No disponible"
+    },
+    "AutoencoderTrainingCard": {
+      "header": "Interfaz de entrenamiento de Autoencoder",
+      "errorSelectingPath": "Error al seleccionar la ruta"
+    },
+    "HeatmapCard": {
+      "heatmapHeader": "Mapa de calor"
+    },
+    "HeatmapGenerateButton": {
+      "select": "Generar mapa de calor para la base de datos"
+    },
+    "CalibrateClosedButton": {
+      "select": "Calibrar — Cerrado"
+    },
+    "CalibrateOpenButton": {
+      "select": "Calibrar — Abierto"
+    },
+    "CalibrateWideButton": {
+      "select": "Calibrar — Secuencia de parpadeo lento"
+    },
+    "CalibrationPlotCard": {
+      "header": "Gráficas de calibración",
+      "combined": "Combinado",
+      "leftEye": "Ojo izquierdo",
+      "rightEye": "Ojo derecho"
+    },
+    "Training": {
+      "runAutoencoderTraining": "Ejecutar entrenamiento del Autoencoder",
+      "selectTrainedModelOutputPath": "Seleccionar ruta de salida del modelo entrenado",
+      "selectConvertedModelOutputPath": "Seleccionar ruta de salida del modelo convertido",
+      "trainCombinedAutoencoder": "Entrenar Autoencoder combinado",
+      "trainCombinedAutoencoderTooltip": "Habilitar el entrenamiento del Autoencoder combinado usando datos de ambos ojos",
+      "trainLeftAutoencoder": "Entrenar Autoencoder izquierdo",
+      "trainLeftAutoencoderTooltip": "Habilitar el entrenamiento del Autoencoder solo para el ojo izquierdo",
+      "trainRightAutoencoder": "Entrenar Autoencoder derecho",
+      "trainRightAutoencoderTooltip": "Habilitar el entrenamiento del Autoencoder solo para el ojo derecho",
+      "convertCombinedAutoencoder": "Convertir Autoencoder combinado",
+      "convertCombinedAutoencoderTooltip": "Habilitar la conversión/exportación del Autoencoder combinado tras el entrenamiento",
+      "convertLeftAutoencoder": "Convertir Autoencoder izquierdo",
+      "convertLeftAutoencoderTooltip": "Habilitar la conversión/exportación del Autoencoder izquierdo tras el entrenamiento",
+      "convertRightAutoencoder": "Convertir Autoencoder derecho",
+      "convertRightAutoencoderTooltip": "Habilitar la conversión/exportación del Autoencoder derecho tras el entrenamiento"
     }
 }
   

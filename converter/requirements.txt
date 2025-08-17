@@ -1,2 +1,0 @@
-tensorflow==2.15.1
-tensorflowjs==4.21.0

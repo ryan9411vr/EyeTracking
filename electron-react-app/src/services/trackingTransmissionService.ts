@@ -12,8 +12,8 @@
  */
 
 import store from '../store';
-import { EyeSelectionUtils } from '../utilities/eyeSelectionUtils';
-import { EqualityUtils } from '../utilities/equalityUtils';
+import { EyeSelectionUtils } from '../utilities/EyeSelectionUtils';
+import { EqualityUtils } from '../utilities/EqualityUtils';
 import { OscSenderUtils } from '../utilities/OscSenderUtils';
 
 /* -------------------------------------------------------------------
@@ -60,33 +60,30 @@ let lastClosedTimestampLeft = 0;
 let lastClosedTimestampRight = 0;
 
 /**
- * Transforms the raw openness value based on a provided configuration.
+ * Transforms the raw openness value based on a provided configuration with two thresholds.
  *
  * Rules:
- * - If the value is less than opennessConfig[0]          -> output 0.
- * - If between opennessConfig[0] and opennessConfig[1]   -> scale smoothly from 0 to 0.75.
- * - If between opennessConfig[1] and opennessConfig[2]   -> output 0.75.
- * - If between opennessConfig[2] and opennessConfig[3]   -> scale smoothly from 0.75 to 1.
- * - If the value is greater than opennessConfig[3]       -> output 1.
+ * - If value < opennessConfig[0]            -> output 0.
+ * - If between opennessConfig[0] & [1]      -> scale smoothly from 0 to 0.75.
+ * - If value >= opennessConfig[1]           -> output 0.75.
  *
  * @param value - The raw openness value.
- * @param opennessConfig - A tuple defining the thresholds for transformation.
+ * @param opennessConfig - A tuple with two thresholds.
  * @returns The transformed openness value.
  */
 function transformOpenness(
   value: number,
-  opennessConfig: [number, number, number, number]
+  opennessConfig: [number, number]
 ): number {
-  if (value < opennessConfig[0]) {
+  const [low, high] = opennessConfig;
+
+  if (value < low) {
     return 0;
-  } else if (value < opennessConfig[1]) {
-    return ((value - opennessConfig[0]) / (opennessConfig[1] - opennessConfig[0])) * 0.75;
-  } else if (value < opennessConfig[2]) {
-    return 0.75;
-  } else if (value < opennessConfig[3]) {
-    return 0.75 + ((value - opennessConfig[2]) / (opennessConfig[3] - opennessConfig[2])) * 0.25;
+  } else if (value < high) {
+    // Interpolate from 0 → 0.75
+    return ((value - low) / (high - low)) * 0.75;
   } else {
-    return 1;
+    return 0.75;
   }
 }
 

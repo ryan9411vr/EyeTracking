@@ -17,7 +17,7 @@ import configReducer, { initialState as configInitialState } from './slices/conf
 import databaseReducer, { initialState as databaseInitialState } from './slices/databaseSlice';
 
 const migrations = {
-  1: (state: any) => {
+  3: (state: any) => {
     return {
       ...state,
       config: {
@@ -40,7 +40,7 @@ const migrations = {
  */
 const persistConfig = {
   key: 'root',
-  version: 1, // If incremented, you'll need to add more migration steps.
+  version: 3, // If incremented, you'll need to add more migration steps.
   storage,
   whitelist: ['config', 'database'],
   migrate: createMigrate(migrations, { debug: false }),

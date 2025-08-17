@@ -12,14 +12,13 @@
 
 import store, { RootState } from '../store';
 import * as tf from '@tensorflow/tfjs';
-import * as combinedThetaModel from './models/combinedThetaModel';
-import * as combinedOpennessModel from './models/combinedOpennessModel';
-import * as rightThetaModel from './models/rightThetaModel';
-import * as rightOpennessModel from './models/rightOpennessModel';
-import * as leftThetaModel from './models/leftThetaModel';
-import * as leftOpennessModel from './models/leftOpennessModel';
+import * as combinedAutoencoderModel from './models/combinedAutoencoderModel';
+import * as leftAutoencoderModel from './models/leftAutoencoderModel';
+import * as rightAutoencoderModel from './models/rightAutoencoderModel';
 import { startTrackingTransmission } from './trackingTransmissionService';
 import { NormalizationUtils } from '../utilities/NormalizationUtils';
+import { updateOpennessCombined, updateOpennessLeft, updateOpennessRight } from '../slices/statusSlice';
+import { mapOpenness } from './opennessComputationService';
 
 let currentModelFolder = "";
 const debugVisual = false;
@@ -115,10 +114,7 @@ async function runTracking() {
   const {
     trackingRate,
     modelFile,
-    independentEyes,
-    independentOpenness,
     syncedEyeUpdates,
-    eyelidBasedGazeTrust
   } = state.config;
 
   // Reload models if the model folder configuration has changed.
@@ -126,12 +122,9 @@ async function runTracking() {
     NormalizationUtils.resetNormalization();
     try {
       await Promise.all([
-        combinedThetaModel.loadModel(`${modelFile}\\combined_pitchyaw`),
-        combinedOpennessModel.loadModel(`${modelFile}\\combined_openness`),
-        rightThetaModel.loadModel(`${modelFile}\\right_pitchyaw`),
-        rightOpennessModel.loadModel(`${modelFile}\\right_openness`),
-        leftThetaModel.loadModel(`${modelFile}\\left_pitchyaw`),
-        leftOpennessModel.loadModel(`${modelFile}\\left_openness`)
+        combinedAutoencoderModel.loadModel(`${modelFile}\\`),
+        leftAutoencoderModel.loadModel(`${modelFile}\\`),
+        rightAutoencoderModel.loadModel(`${modelFile}\\`),
       ]);
       console.log('All tracking models loaded.');
     } catch (err) {
@@ -227,47 +220,27 @@ async function runTracking() {
         ? await loadAndPreprocessImage(rightEye.frame, targetSize)
         : tf.zeros([targetSize[1], targetSize[0], 3]) as tf.Tensor3D;
 
-      // Initialize default gaze trust values.
-      let combinedGazeTrust = 0.75;
-      let leftGazeTrust = 0.75;
-      let rightGazeTrust = 0.75;
-
-      // Compute openness predictions.
-      if (!independentOpenness) {
-        if (validLeft && validRight) {
-          combinedGazeTrust = await combinedOpennessModel.makePrediction(leftTensor, rightTensor);
-        } else if (validLeft) {
-          leftGazeTrust = await leftOpennessModel.makePrediction(leftTensor);
-        } else if (validRight) {
-          rightGazeTrust = await rightOpennessModel.makePrediction(rightTensor);
+      if (validLeft && validRight) {
+        let latents : number[] | null = await combinedAutoencoderModel.encodeLatents(leftTensor, rightTensor);
+        if (latents) {
+          const openCombined = mapOpenness(
+            [latents[5], latents[6], latents[7]], 'combined');
+          store.dispatch(updateOpennessCombined(openCombined));
         }
-      } else {
-        if (validLeft) leftGazeTrust = await leftOpennessModel.makePrediction(leftTensor);
-        if (validRight) rightGazeTrust = await rightOpennessModel.makePrediction(rightTensor);
       }
-
-      // Override openness trust values if eyelid-based gaze trust is disabled.
-      if (!eyelidBasedGazeTrust) {
-        combinedGazeTrust = 0.75;
-        leftGazeTrust = 0.75;
-        rightGazeTrust = 0.75;
+      if (validLeft) {
+        let latents : number[] | null = await leftAutoencoderModel.encodeLatents(leftTensor);
+        if (latents) {
+          const openLeft = mapOpenness([latents[5], latents[6], latents[7]], 'left');
+          store.dispatch(updateOpennessLeft(openLeft));
+        }
       }
-
-      // Compute theta predictions based on whether eyes are processed independently.
-      if (!independentEyes) {
-        if (validLeft && validRight) {
-          await combinedThetaModel.makePrediction(leftTensor, rightTensor, combinedGazeTrust);
-        } else if (validLeft) {
-          await leftThetaModel.makePrediction(leftTensor, leftGazeTrust);
-        } else if (validRight) {
-          await rightThetaModel.makePrediction(rightTensor, rightGazeTrust);
+      if (validRight) {
+        let latents : number[] | null = await rightAutoencoderModel.encodeLatents(rightTensor);
+        if (latents) {
+          const openRight = mapOpenness([latents[5], latents[6], latents[7]], 'right');
+          store.dispatch(updateOpennessRight(openRight));
         }
-      } else {
-        if (validLeft && validRight) {
-          await combinedThetaModel.makePrediction(leftTensor, rightTensor, combinedGazeTrust);
-        }
-        if (validLeft) await leftThetaModel.makePrediction(leftTensor, leftGazeTrust);
-        if (validRight) await rightThetaModel.makePrediction(rightTensor, rightGazeTrust);
       }
 
       // Clean up tensors to free memory.
