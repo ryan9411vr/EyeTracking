@@ -13,13 +13,14 @@ import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { setBlinkCalibrationActive } from "../../../slices/statusSlice";
 import ButtonAtom from "../../atoms/ButtonAtom";
+import beepUrl from "../../../../public/beep.mp3";
 
 const CalibrateSlowBlinkButtonMolecule: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
   const playBeep = () => {
-    const audio = new Audio("/beep.mp3");
+    const audio = new Audio(beepUrl);
     audio.play().catch((err) => {
       console.error("Failed to play beep:", err);
     });
