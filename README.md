@@ -2,6 +2,8 @@
 
 This project is the client application for a self-trained, machine learning-based eye tracking system for VRChat.
 
+https://cdn.discordapp.com/attachments/594630968841732264/1408340860109717575/2025-08-22_06-41-38.mp4
+
 # Info
 
 This project and the related repositories allow you to build a database of images and tracking data for your gaze and eye openness, then train machine learning models on that database, and finally use those models for customized tracking suited to your face, eyes, and hardware. The project is compatible with ETVR firmware.
