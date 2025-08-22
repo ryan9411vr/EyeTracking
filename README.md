@@ -2,7 +2,7 @@
 
 This project is the client application for a self-trained, machine learning-based eye tracking system for VRChat.
 
-https://cdn.discordapp.com/attachments/594630968841732264/1408340860109717575/2025-08-22_06-41-38.mp4
+https://cdn.discordapp.com/attachments/594630968841732264/1408340860109717575/2025-08-22_06-41-38.mp4?ex=68a96322&is=68a811a2&hm=d25a6c6e516c75f4bfea9d394c7042fc5c2b350e3d4777a6f286baf9a530d2ae&
 
 # Info
 
