@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import HeadsetPortMolecule from '../molecules/text/HeadsetTrackingPortTextMolecule';
 import LeftEyeMolecule from '../molecules/text/LeftEyeImageDataTextMolecule';
 import RightEyeMolecule from '../molecules/text/RightEyeImageDataTextMolecule';
+import CtxFilterTextMolecule from '../molecules/text/CtxFilterTextMolecule';
 
 const ConfigurationSection: React.FC = () => {
   const { t } = useTranslation();
@@ -17,6 +18,7 @@ const ConfigurationSection: React.FC = () => {
         <HeadsetPortMolecule />
         <LeftEyeMolecule />
         <RightEyeMolecule />
+        <CtxFilterTextMolecule />
       </div>
     </div>
   );

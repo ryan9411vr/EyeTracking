@@ -17,6 +17,8 @@ let leftConn: CameraConnection | null = null;
 let rightConn: CameraConnection | null = null;
 let currentLeftAddress: string | null = null;
 let currentRightAddress: string | null = null;
+let currentCtxFilterRight: string | null = null;
+let currentCtxFilterLeft: string | null = null;
 let shuttingDown = false;
 
 /**
@@ -155,6 +157,7 @@ export function startCameraService() {
     const newRight = newState.config.rightEye;
     const leftForced = newState.config.leftEyeForcedOffline;
     const rightForced = newState.config.rightEyeForcedOffline;
+    const newCtxFilter = newState.config.ctxFilter;
 
     // Handle left eye updates.
     if (leftForced) {
@@ -164,8 +167,9 @@ export function startCameraService() {
         leftConn = null;
       }
     } else {
-      if (newLeft !== currentLeftAddress) {
+      if (newLeft !== currentLeftAddress || newCtxFilter !== currentCtxFilterLeft) {
         currentLeftAddress = newLeft;
+        currentCtxFilterLeft = newCtxFilter;
         if (leftConn) {
           leftConn.close();
           leftConn = null;
@@ -187,8 +191,9 @@ export function startCameraService() {
         rightConn = null;
       }
     } else {
-      if (newRight !== currentRightAddress) {
+      if (newRight !== currentRightAddress || newCtxFilter !== currentCtxFilterRight) {
         currentRightAddress = newRight;
+        currentCtxFilterRight = newCtxFilter;
         if (rightConn) {
           rightConn.close();
           rightConn = null;

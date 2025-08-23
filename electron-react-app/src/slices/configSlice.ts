@@ -84,6 +84,7 @@ export interface ConfigState {
   calibrationPlotExpanded: boolean;
   blinkOpenThreshold: number;
   blinkCloseThreshold: number;
+  ctxFilter: string;
 
   calibrationPlotData: {
     combined: number[] | null;
@@ -156,6 +157,7 @@ export const initialState: ConfigState = {
   calibrationPlotExpanded: true,
   blinkOpenThreshold: 0.8,
   blinkCloseThreshold: 0.2,
+  ctxFilter: "",
 
   calibrationPlotData: {
     combined: null,
@@ -376,6 +378,9 @@ const configSlice = createSlice({
       state.calibrationPlotData.right = action.payload.pred ?? null;
       state.calibrationPlotData.smoothRight = action.payload.smooth ?? null;
     },
+    setCtxFilter(state, action: PayloadAction<string>) {
+      state.ctxFilter = action.payload;
+    },
     clearCalibrationPlots(state) {
       state.calibrationPlotData = {
         combined: null,
@@ -462,6 +467,7 @@ export const {
   setCalibrationPlotLeft,
   setCalibrationPlotRight,
   clearCalibrationPlots,
+  setCtxFilter,
 } = configSlice.actions;
 
 export default configSlice.reducer;

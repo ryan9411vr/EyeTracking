@@ -13,7 +13,7 @@
 self.onmessage = async (event) => {
   try {
     // Extract the JPEG buffer from the incoming message.
-    const { jpegBuffer } = event.data;
+    const { jpegBuffer, ctxFilter } = event.data;
 
     // Create a Blob from the JPEG buffer specifying the MIME type.
     const blob = new Blob([jpegBuffer], { type: 'image/jpeg' });
@@ -26,6 +26,7 @@ self.onmessage = async (event) => {
     
     // Get the 2D drawing context from the canvas.
     const ctx = canvas.getContext('2d');
+    ctx.filter = ctxFilter;
     
     // Draw the image onto the canvas starting at the top-left corner.
     ctx.drawImage(imageBitmap, 0, 0);

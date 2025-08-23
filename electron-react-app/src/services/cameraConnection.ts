@@ -243,12 +243,15 @@ export function createMJPEGWIFIConnection({
     // Transfer the ArrayBuffer to the worker for efficient processing.
     if (side === 'leftEye') {
       imageProcessorWorkerLeft.postMessage(
-        { jpegBuffer: imageData.buffer },
+        { jpegBuffer: imageData.buffer,
+          ctxFilter: store.getState().config.ctxFilter
+         },
         [imageData.buffer]
       );
     } else {
       imageProcessorWorkerRight.postMessage(
-        { jpegBuffer: imageData.buffer },
+        { jpegBuffer: imageData.buffer,
+          ctxFilter: store.getState().config.ctxFilter },
         [imageData.buffer]
       );
     }
@@ -289,6 +292,7 @@ export function createMJPEGWIFIConnection({
           console.log("done");
           break;
         }
+        // @ts-ignore
         buffer = concatUint8Arrays(buffer, value!);
 
         // Look for the MJPEG boundary and process each frame.
@@ -518,7 +522,7 @@ export function createUVCConnection({
       canvas.height = 240;
 
       // Set a filter for fixing the messed up contrast. Seems to be needed for the OpenIris cameras.
-      ctx.filter = 'contrast(1.5)';
+      ctx.filter = store.getState().config.ctxFilter;
 
       // Get original tracking rate.
       const state = store.getState();
