@@ -1,7 +1,7 @@
 // src/slices/configSlice.ts
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { isValidIpPort } from '../utilities/validation';
+import { isValidHostPort } from '../utilities/validation';
 
 /**
  * Represents the configuration state of the application.
@@ -177,7 +177,7 @@ export const initialState: ConfigState = {
 
 const updateTrackingConfigValidity = (state: ConfigState) => {
   state.trackingConfigValidity =
-    isValidIpPort(state.vrcOsc) &&
+    isValidHostPort(state.vrcOsc) &&
     (state.vrcNative || state.vrcftV1 || state.vrcftV2);
 };
 
